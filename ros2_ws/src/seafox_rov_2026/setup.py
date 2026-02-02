@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'cameras_publisher = seafox_rov_2026.cameras.camerasPublisher:main',
         ],
     },
 )
