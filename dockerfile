@@ -19,13 +19,14 @@ RUN apt-get update && apt-get install -y \
     vim \
     python3-pip \
     python3-dev \
+    python3-pyqt5 \
     && rm -rf /var/lib/apt/lists/*
 
 # Python deps
 RUN pip3 install --no-cache-dir \
     opencv-python-headless \
-    numpy==1.22
-
+    numpy==1.22 
+    
 # Workspace
 WORKDIR /home/ros/ros2_ws
 COPY ros2_ws/src ./src
