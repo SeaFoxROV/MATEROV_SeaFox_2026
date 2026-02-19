@@ -29,7 +29,7 @@ RUN pip3 install --no-cache-dir \
     
 # Workspace
 WORKDIR /home/ros/ros2_ws
-COPY ros2_ws/src ./src
+# COPY ros2_ws/src ./src
 
 # Source ROS
 RUN echo "source /opt/ros/humble/setup.bash" >> /home/ros/.bashrc
