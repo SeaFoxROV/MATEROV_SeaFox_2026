@@ -1,5 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QHBoxLayout
+from PyQt5.QtCore import Qt
 
 from components.camera import CameraWidget
 from components.model import ModelWidget
@@ -26,6 +27,10 @@ class MainWindow(QMainWindow):
 
         layout.setStretch(0, 1)
         layout.setStretch(1, 1)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_B:
+            self.left_widget.adjuster.set_brightness(self.left_widget.adjuster.brightness + 10)
 
 
 def main():

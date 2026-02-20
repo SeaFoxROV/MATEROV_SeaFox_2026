@@ -6,13 +6,16 @@ from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QLabel, QWidget
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QImage, QPixmap
 
+from .camera_quick_config import ImageAdjuster
+
 class VideoThread(QThread):
     change_pixmap_signal = pyqtSignal(QImage)
 
-    def __init__(self, url):
+    def __init__(self, url, adjuster):
         super().__init__()
         self.url = url
         self._run_flag = True
+        self.adjuster = adjuster
         self.session = requests.Session()
 
     def run(self):
@@ -25,6 +28,7 @@ class VideoThread(QThread):
                     cv_img = cv2.imdecode(array, cv2.IMREAD_COLOR)
 
                     if cv_img is not None:
+                        cv_img = self.adjuster.apply(cv_img)
                         height, width, channel = cv_img.shape
                         bytes_per_line = 3 * width
                         # to Qt
@@ -44,9 +48,10 @@ class CameraWidget(QFrame):
         
         self.camera_configs = {
             "main": "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000",
-            "upper": "http://admin:admin@192.168.1.9:6688/snapshot/PROFILE_000",
+            # "upper": "http://admin:admin@192.168.1.9:6688/snapshot/PROFILE_000",
             # "middle": "http://admin:admin@192.168.1.4:6688/snapshot/PROFILE_000",
         }
+        self.adjuster = ImageAdjuster()
 
         self.threads = []
         self.setFrameShape(QFrame.StyledPanel)
@@ -68,7 +73,7 @@ class CameraWidget(QFrame):
             camera_layout.addWidget(image_label)
             main_layout.addLayout(camera_layout)
 
-            thread = VideoThread(url)
+            thread = VideoThread(url, self.adjuster)
             thread.change_pixmap_signal.connect(
                 lambda img, lbl=image_label: self.set_image(img, lbl)
             )
