@@ -29,8 +29,18 @@ class MainWindow(QMainWindow):
         layout.setStretch(1, 1)
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_B:
+        if event.text() == 'B':
             self.left_widget.adjuster.set_brightness(self.left_widget.adjuster.brightness + 10)
+        elif event.text() == 'b':
+            self.left_widget.adjuster.set_brightness(self.left_widget.adjuster.brightness - 10)
+        elif event.text() == 'C':
+            self.left_widget.adjuster.set_contrast(self.left_widget.adjuster.contrast + 0.1)
+        elif event.text() == 'c':
+            self.left_widget.adjuster.set_contrast(self.left_widget.adjuster.contrast - 0.1)
+        elif event.text() == 'S':
+            self.left_widget.adjuster.set_saturation(self.left_widget.adjuster.saturation + 0.1)
+        elif event.text() == 's':
+            self.left_widget.adjuster.set_saturation(self.left_widget.adjuster.saturation - 0.1)
 
 
 def main():
