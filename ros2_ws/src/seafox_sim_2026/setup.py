@@ -10,6 +10,10 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+
+        ('share/seafox_sim_2026/launch', ['launch/display.launch.py']),
+        ('share/seafox_sim_2026/models', ['seafox_sim_2026/models/rov.stl']),
+        ('share/seafox_sim_2026/urdf', ['seafox_sim_2026/urdf/rov.urdf']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -22,8 +26,10 @@ setup(
             'pytest',
         ],
     },
-    entry_points={
-        'console_scripts': [
-        ],
-    },
+        entry_points={
+            'console_scripts': [
+                'depth_tf_node = seafox_sim_2026.depth_tf_node:main',
+                'force_visualizer_node = seafox_sim_2026.force_visualizer_node:main',
+            ],
+        },
 )

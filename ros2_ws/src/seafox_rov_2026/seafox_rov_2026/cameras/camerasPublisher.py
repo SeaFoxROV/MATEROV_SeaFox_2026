@@ -8,6 +8,7 @@ import cv2
 import requests
 import numpy as np
 
+import time
 
 
 class CamerasPublisher(Node):
@@ -16,9 +17,9 @@ class CamerasPublisher(Node):
 
         self.session = requests.Session()
 
-        self.declare_parameter("main_cam_url", "http://admin:admin@192.168.1.9:6688/snapshot/PROFILE_000")
-        self.declare_parameter("upper_cam_url", "http://admin:admin@192.168.1.4:6688/snapshot/PROFILE_000")
-        self.declare_parameter("lower_cam_url", "http://admin:admin@192.168.1.4:6688/snapshot/PROFILE_000") #change when the third camera arrives
+        self.declare_parameter("main_cam_url", "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000")
+        self.declare_parameter("upper_cam_url", "http://admin:admin@192.168.1.67:6688/snapshot/PROFILE_000")
+        #self.declare_parameter("lower_cam_url", "") #change when the third camera arrives
 
         self.bridge = CvBridge()
 
@@ -30,19 +31,15 @@ class CamerasPublisher(Node):
             "upper": {
                 "url": self.get_parameter("upper_cam_url").get_parameter_value().string_value,
                 "pub": self.create_publisher(Image, "upperCamera", 10)
-            },
-            "lower": {
-                "url": self.get_parameter("lower_cam_url").get_parameter_value().string_value,
-                "pub": self.create_publisher(Image, "lowerCamera", 10)
             }
         }
-
-        self.timer = self.create_timer(0.035, self.timer_callback)
+        self.timer = self.create_timer(0.01, self.timer_callback)
 
     def timer_callback(self):
 
         for name, cam in self.cameras.items():
             try:
+                inicio = time.time()
                 r = self.session.get(cam["url"], timeout=0.07)
                 img = cv2.imdecode(
                     np.frombuffer(r.content, np.uint8),
@@ -58,6 +55,7 @@ class CamerasPublisher(Node):
 
                 cam["pub"].publish(msg)
 
+                print(time.time()-inicio)
             except Exception as e:
                 self.get_logger().warn(f"{name} cam error: {e}")
 
