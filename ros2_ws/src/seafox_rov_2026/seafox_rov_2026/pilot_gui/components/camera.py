@@ -11,12 +11,14 @@ from .camera_quick_config import ImageAdjuster
 class VideoThread(QThread):
     change_pixmap_signal = pyqtSignal(QImage)
 
-    def __init__(self, url, adjuster):
+    def __init__(self, name, url, adjuster):
         super().__init__()
+        self.name = name
         self.url = url
         self._run_flag = True
         self.adjuster = adjuster
         self.session = requests.Session()
+        self.apply_adjustments = False
 
     def run(self):
         while self._run_flag:
@@ -48,16 +50,18 @@ class CameraWidget(QFrame):
         
         self.camera_configs = {
             "main": "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000",
-            # "upper": "http://admin:admin@192.168.1.9:6688/snapshot/PROFILE_000",
-            # "middle": "http://admin:admin@192.168.1.4:6688/snapshot/PROFILE_000",
+            "upper": "http://admin:admin@192.168.1.67:6688/snapshot/PROFILE_000",
+            "middle": "http://admin:admin@192.168.1.4:6688/snapshot/PROFILE_000",
         }
-        self.adjuster = ImageAdjuster()
 
-        self.threads = []
+        self.threads = {}
+        self.selected_camera = None
         self.setFrameShape(QFrame.StyledPanel)
         main_layout = QVBoxLayout()
 
         for name, url in self.camera_configs.items():
+            adjuster = ImageAdjuster()
+
             camera_layout = QVBoxLayout()
 
             title = QLabel(name.upper())
@@ -73,12 +77,12 @@ class CameraWidget(QFrame):
             camera_layout.addWidget(image_label)
             main_layout.addLayout(camera_layout)
 
-            thread = VideoThread(url, self.adjuster)
+            thread = VideoThread(name, url, adjuster)
             thread.change_pixmap_signal.connect(
                 lambda img, lbl=image_label: self.set_image(img, lbl)
             )
             thread.start()
-            self.threads.append(thread)
+            self.threads[name] = thread
 
         self.setLayout(main_layout)
 
@@ -89,9 +93,21 @@ class CameraWidget(QFrame):
         label.setPixmap(pixmap)
 
     def closeEvent(self, event):
-        for thread in self.threads:
+        for thread in self.threads.values():
             thread.stop()
         event.accept()
+    
+    def select_camera(self, camera_name):
+        for name, thread in self.threads.items():
+            thread.apply_adjustments = False
+        if camera_name in self.threads:
+            self.threads[camera_name].apply_adjustments = True
+            self.selected_camera = camera_name
+
+    def get_selected_camera(self):
+        if self.selected_camera is None:
+            return None
+        return self.threads[self.selected_camera].adjuster
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

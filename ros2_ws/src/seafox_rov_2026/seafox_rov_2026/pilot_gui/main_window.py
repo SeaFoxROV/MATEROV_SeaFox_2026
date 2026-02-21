@@ -12,6 +12,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("PyQt5 - División Vertical")
         self.setGeometry(100, 100, 800, 500)
+        self.all_cameras = False
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -29,19 +30,74 @@ class MainWindow(QMainWindow):
         layout.setStretch(1, 1)
 
     def keyPressEvent(self, event):
-        if event.text() == 'B':
-            self.left_widget.adjuster.set_brightness(self.left_widget.adjuster.brightness + 10)
-        elif event.text() == 'b':
-            self.left_widget.adjuster.set_brightness(self.left_widget.adjuster.brightness - 10)
-        elif event.text() == 'C':
-            self.left_widget.adjuster.set_contrast(self.left_widget.adjuster.contrast + 0.1)
-        elif event.text() == 'c':
-            self.left_widget.adjuster.set_contrast(self.left_widget.adjuster.contrast - 0.1)
-        elif event.text() == 'S':
-            self.left_widget.adjuster.set_saturation(self.left_widget.adjuster.saturation + 0.1)
-        elif event.text() == 's':
-            self.left_widget.adjuster.set_saturation(self.left_widget.adjuster.saturation - 0.1)
+        # Camera selection
+        if event.text() == '1':
+            self.left_widget.select_camera("main")
+            self.all_cameras = False
+        elif event.text() == '2':
+            self.left_widget.select_camera("upper")
+            self.all_cameras = False
+        elif event.text() == '3':
+            self.left_widget.select_camera("middle")
+            self.all_cameras = False
+        elif event.text() == '0':
+            self.all_cameras = True
 
+        # Quick conf
+        elif event.text() == 'B':
+            if self.all_cameras:
+                for name in self.left_widget.threads.keys():
+                    adjuster = self.left_widget.threads[name].adjuster
+                    adjuster.set_brightness(adjuster.brightness + 10)
+            else:
+                adjuster = self.left_widget.get_selected_camera()
+                if adjuster:
+                    adjuster.set_brightness(adjuster.brightness + 10)
+        elif event.text() == 'b':
+            if self.all_cameras:
+                for name in self.left_widget.threads.keys():
+                    adjuster = self.left_widget.threads[name].adjuster
+                    adjuster.set_brightness(adjuster.brightness - 10)
+            else:
+                adjuster = self.left_widget.get_selected_camera()
+                if adjuster:
+                    adjuster.set_brightness(adjuster.brightness - 10)
+        elif event.text() == 'C':
+            if self.all_cameras:
+                for name in self.left_widget.threads.keys():
+                    adjuster = self.left_widget.threads[name].adjuster
+                    adjuster.set_contrast(adjuster.contrast + 0.1)
+            else:
+                adjuster = self.left_widget.get_selected_camera()
+                if adjuster:
+                    adjuster.set_contrast(adjuster.contrast + 0.1)
+        elif event.text() == 'c':
+            if self.all_cameras:
+                for name in self.left_widget.threads.keys():
+                    adjuster = self.left_widget.threads[name].adjuster
+                    adjuster.set_contrast(adjuster.contrast - 0.1)
+            else:
+                adjuster = self.left_widget.get_selected_camera()
+                if adjuster:
+                    adjuster.set_contrast(adjuster.contrast - 0.1)
+        elif event.text() == 'S':
+            if self.all_cameras:
+                for name in self.left_widget.threads.keys():
+                    adjuster = self.left_widget.threads[name].adjuster
+                    adjuster.set_saturation(adjuster.saturation + 0.1)
+            else:
+                adjuster = self.left_widget.get_selected_camera()
+                if adjuster:
+                    adjuster.set_saturation(adjuster.saturation + 0.1)
+        elif event.text() == 's':
+            if self.all_cameras:
+                for name in self.left_widget.threads.keys():
+                    adjuster = self.left_widget.threads[name].adjuster
+                    adjuster.set_saturation(adjuster.saturation - 0.1)
+            else:
+                adjuster = self.left_widget.get_selected_camera()
+                if adjuster:
+                    adjuster.set_saturation(adjuster.saturation - 0.1)
 
 def main():
     app = QApplication(sys.argv)
