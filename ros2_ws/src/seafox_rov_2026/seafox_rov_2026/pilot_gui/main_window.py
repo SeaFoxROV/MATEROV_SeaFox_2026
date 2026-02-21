@@ -34,14 +34,19 @@ class MainWindow(QMainWindow):
         if event.text() == '1':
             self.left_widget.select_camera("main")
             self.all_cameras = False
+            self.left_widget.set_title_style("main", "font-weight: bold; color: white; background-color: #2BCF47;")
         elif event.text() == '2':
             self.left_widget.select_camera("upper")
             self.all_cameras = False
+            self.left_widget.set_title_style("upper", "font-weight: bold; color: white; background-color: #2BCF47;")
         elif event.text() == '3':
             self.left_widget.select_camera("middle")
             self.all_cameras = False
+            self.left_widget.set_title_style("middle", "font-weight: bold; color: white; background-color: #2BCF47;")
         elif event.text() == '0':
             self.all_cameras = True
+            for name in self.left_widget.threads.keys():
+                self.left_widget.set_title_style(name, "font-weight: bold; color: white; background-color: #333;")
 
         # Quick conf
         elif event.text() == 'B':

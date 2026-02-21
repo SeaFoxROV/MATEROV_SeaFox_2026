@@ -53,7 +53,7 @@ class CameraWidget(QFrame):
             "upper": "http://admin:admin@192.168.1.67:6688/snapshot/PROFILE_000",
             "middle": "http://admin:admin@192.168.1.4:6688/snapshot/PROFILE_000",
         }
-
+        self.titles = {}
         self.threads = {}
         self.selected_camera = None
         self.setFrameShape(QFrame.StyledPanel)
@@ -67,6 +67,7 @@ class CameraWidget(QFrame):
             title = QLabel(name.upper())
             title.setAlignment(Qt.AlignCenter)
             title.setStyleSheet("font-weight: bold; color: white; background-color: #333;")
+            self.titles[name] = title
 
             image_label = QLabel("Conectando...")
             image_label.setAlignment(Qt.AlignCenter)
@@ -108,6 +109,12 @@ class CameraWidget(QFrame):
         if self.selected_camera is None:
             return None
         return self.threads[self.selected_camera].adjuster
+    
+    def set_title_style(self, camera_name, style):
+        for name in self.titles.keys():
+            self.titles[name].setStyleSheet("font-weight: bold; color: white; background-color: #333;")
+        if camera_name in self.titles:
+            self.titles[camera_name].setStyleSheet(style)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
