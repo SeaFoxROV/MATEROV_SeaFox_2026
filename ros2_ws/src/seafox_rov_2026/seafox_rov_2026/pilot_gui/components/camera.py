@@ -55,6 +55,7 @@ class CameraWidget(QFrame):
         }
         self.titles = {}
         self.threads = {}
+        self.labels = {}
         self.selected_camera = None
         self.setFrameShape(QFrame.StyledPanel)
         main_layout = QVBoxLayout()
@@ -73,6 +74,7 @@ class CameraWidget(QFrame):
             image_label.setAlignment(Qt.AlignCenter)
             image_label.setFixedSize(640, 480)
             image_label.setStyleSheet("background-color: black; border: 1px solid gray;")
+            self.labels[name] = image_label
 
             camera_layout.addWidget(title)
             camera_layout.addWidget(image_label)
@@ -115,6 +117,17 @@ class CameraWidget(QFrame):
             self.titles[name].setStyleSheet("font-weight: bold; color: white; background-color: #333;")
         if camera_name in self.titles:
             self.titles[camera_name].setStyleSheet(style)
+
+    def maximize_camera(self, camera_name):
+        for name, label in self.labels.items():
+            if name == camera_name:
+                label.parent().show()
+            else:
+                label.parent().hide()
+
+    def reset_camera_view(self):
+        for label in self.labels.values():
+            label.parent().show()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

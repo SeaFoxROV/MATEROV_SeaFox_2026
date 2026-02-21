@@ -13,6 +13,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("PyQt5 - División Vertical")
         self.setGeometry(100, 100, 800, 500)
         self.all_cameras = False
+        self.selected_camera = None
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -32,21 +33,33 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         # Camera selection
         if event.text() == '1':
+            if self.selected_camera == "1":
+                self.left_widget.maximize_camera("main")
+            self.selected_camera = "1"
             self.left_widget.select_camera("main")
             self.all_cameras = False
             self.left_widget.set_title_style("main", "font-weight: bold; color: white; background-color: #2BCF47;")
         elif event.text() == '2':
+            if self.selected_camera == "2":
+                self.left_widget.maximize_camera("upper")
+            self.selected_camera = "2"
             self.left_widget.select_camera("upper")
             self.all_cameras = False
             self.left_widget.set_title_style("upper", "font-weight: bold; color: white; background-color: #2BCF47;")
         elif event.text() == '3':
+            if self.selected_camera == "3":
+                self.left_widget.maximize_camera("middle")
+            self.selected_camera = "3"
             self.left_widget.select_camera("middle")
             self.all_cameras = False
             self.left_widget.set_title_style("middle", "font-weight: bold; color: white; background-color: #2BCF47;")
         elif event.text() == '0':
+            self.selected_camera = 0
             self.all_cameras = True
             for name in self.left_widget.threads.keys():
                 self.left_widget.set_title_style(name, "font-weight: bold; color: white; background-color: #333;")
+        elif event.key() == Qt.Key_Escape:
+            self.left_widget.reset_camera_view()
 
         # Quick conf
         elif event.text() == 'B':
