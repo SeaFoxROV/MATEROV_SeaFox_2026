@@ -51,7 +51,7 @@ class CameraWidget(QFrame):
         self.camera_configs = {
             "main": "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000",
             "upper": "http://admin:admin@192.168.1.67:6688/snapshot/PROFILE_000",
-            "middle": "http://admin:admin@192.168.1.4:6688/snapshot/PROFILE_000",
+            "middle": "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000",
         }
         self.titles = {}
         self.threads = {}
