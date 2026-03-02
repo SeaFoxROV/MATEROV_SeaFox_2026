@@ -1,6 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QHBoxLayout
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtWebSockets import QWebSocket
+from PyQt5.QtNetwork import QAbstractSocket
 
 from components.camera import CameraWidget
 from components.model import ModelWidget
@@ -29,6 +31,37 @@ class MainWindow(QMainWindow):
 
         layout.setStretch(0, 1)
         layout.setStretch(1, 1)
+
+        self.ws_url = "ws://10.4.64.213:3001"
+        self.ws_pending_message = None
+        self.websocket = QWebSocket()
+        self.websocket.connected.connect(self._on_ws_connected)
+        self.websocket.disconnected.connect(self._on_ws_disconnected)
+
+    def _on_ws_connected(self):
+        print(f"WebSocket conectado a {self.ws_url}")
+        if self.ws_pending_message:
+            self.websocket.sendTextMessage(self.ws_pending_message)
+            print(f"Mensaje WebSocket enviado: {self.ws_pending_message}")
+            self.ws_pending_message = None
+
+    def _on_ws_disconnected(self):
+        print("WebSocket desconectado")
+
+    def _send_ws_message(self, message):
+        if self.websocket.state() == QAbstractSocket.ConnectedState:
+            self.websocket.sendTextMessage(message)
+            print(f"Mensaje WebSocket enviado: {message}")
+            return
+
+        elif self.websocket.state() == QAbstractSocket.ConnectingState:
+            self.ws_pending_message = message
+            print(f"WebSocket aún conectando a {self.ws_url}...")
+            return
+
+        self.ws_pending_message = message
+        print(f"Conectando WebSocket a {self.ws_url}...")
+        self.websocket.open(QUrl(self.ws_url))
 
     def keyPressEvent(self, event):
         # Camera selection
@@ -60,6 +93,10 @@ class MainWindow(QMainWindow):
                 self.left_widget.set_title_style(name, "font-weight: bold; color: white; background-color: #333;")
         elif event.key() == Qt.Key_Escape:
             self.left_widget.reset_camera_view()
+
+        # WebSocket conf
+        elif event.key() == Qt.Key_Space:
+            self._send_ws_message("Hola desde SeaFox ROV")
 
         # Quick conf
         elif event.text() == 'B':
