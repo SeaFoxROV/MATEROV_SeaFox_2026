@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-dev \
     python3-pyqt5 \
+    python3-pyqt5.qtwebsockets \
     && rm -rf /var/lib/apt/lists/*
 
 # Python deps
