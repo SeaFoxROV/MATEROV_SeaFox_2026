@@ -128,6 +128,21 @@ class CameraWidget(QFrame):
     def reset_camera_view(self):
         for label in self.labels.values():
             label.parent().show()
+    
+    def get_snapshot(self):
+        if self.selected_camera is None:
+            return ("No hay camera seleccionada")
+        url = self.camera_configs[self.selected_camera]
+        try:
+            response = requests.get(url, timeout=0.6)
+            if response.status_code == 200:
+                array = np.frombuffer(response.content, dtype=np.uint8)
+                cv_img = cv2.imdecode(array, cv2.IMREAD_COLOR)
+                return cv_img
+        except Exception as e:
+            print(f"Error getting snapshot: {e}")
+        return ("Error al obtener la imagen")
+        
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

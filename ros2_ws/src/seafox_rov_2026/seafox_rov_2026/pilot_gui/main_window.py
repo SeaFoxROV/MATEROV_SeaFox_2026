@@ -1,3 +1,4 @@
+from email.mime import message
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QHBoxLayout
 from PyQt5.QtCore import Qt, QUrl
@@ -32,7 +33,7 @@ class MainWindow(QMainWindow):
         layout.setStretch(0, 1)
         layout.setStretch(1, 1)
 
-        self.ws_url = "ws://10.4.64.213:3001"
+        self.ws_url = "ws://192.168.1.95:3001"
         self.ws_pending_message = None
         self.websocket = QWebSocket()
         self.websocket.connected.connect(self._on_ws_connected)
@@ -62,6 +63,12 @@ class MainWindow(QMainWindow):
         self.ws_pending_message = message
         print(f"Conectando WebSocket a {self.ws_url}...")
         self.websocket.open(QUrl(self.ws_url))
+
+    def _on_ws_error(self, error):
+        print("WebSocket error:", self.websocket.errorString())
+
+    def _on_ws_message(self, message):
+        print("Mensaje recibido:", message)
 
     def keyPressEvent(self, event):
         # Camera selection
@@ -96,7 +103,7 @@ class MainWindow(QMainWindow):
 
         # WebSocket conf
         elif event.key() == Qt.Key_Space:
-            self._send_ws_message("Hola desde SeaFox ROV")
+            self._send_ws_message(self.left_widget.get_snapshot())
 
         # Quick conf
         elif event.text() == 'B':

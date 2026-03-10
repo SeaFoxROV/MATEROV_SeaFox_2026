@@ -7,7 +7,7 @@ class Photogrammetry(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.ws_url = "ws://10.4.64.213:3001"
+        self.ws_url = "ws://192.168.1.95:3001"
         self.ws_pending_message = None
         self.websocket = QWebSocket()
         self.websocket.connected.connect(self._on_ws_connected)
