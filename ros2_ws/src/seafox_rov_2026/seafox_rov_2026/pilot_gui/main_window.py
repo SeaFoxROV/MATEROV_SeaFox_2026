@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
         layout.setStretch(0, 1)
         layout.setStretch(1, 1)
 
-        self.ws_url = "ws://192.168.1.95:3001"
+        self.ws_url = "ws://10.4.73.49:3001"
         self.ws_pending_message = None
         self.websocket = QWebSocket()
         self.websocket.connected.connect(self._on_ws_connected)
@@ -42,7 +42,7 @@ class MainWindow(QMainWindow):
     def _on_ws_connected(self):
         print(f"WebSocket conectado a {self.ws_url}")
         if self.ws_pending_message:
-            self.websocket.sendTextMessage(self.ws_pending_message)
+            self.websocket.sendBinaryMessage(self.ws_pending_message)
             print(f"Mensaje WebSocket enviado: {self.ws_pending_message}")
             self.ws_pending_message = None
 
@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
 
     def _send_ws_message(self, message):
         if self.websocket.state() == QAbstractSocket.ConnectedState:
-            self.websocket.sendTextMessage(message)
+            self.websocket.sendBinaryMessage(message)
             print(f"Mensaje WebSocket enviado: {message}")
             return
 

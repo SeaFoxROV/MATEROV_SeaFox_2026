@@ -7,12 +7,12 @@ class Photogrammetry(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.ws_url = "ws://192.168.1.95:3001"
+        self.ws_url = "ws://10.4.73.49:3001"
         self.ws_pending_message = None
         self.websocket = QWebSocket()
         self.websocket.connected.connect(self._on_ws_connected)
         self.websocket.disconnected.connect(self._on_ws_disconnected)
-        self.websocket.textMessageReceived.connect(self._on_ws_message_received)
+        self.websocket.binaryMessageReceived.connect(self._on_ws_message)
         self.message = None
 
         print(f"Conectando WebSocket a {self.ws_url}...")
@@ -27,21 +27,21 @@ class Photogrammetry(QWidget):
     def _on_ws_connected(self):
         print(f"WebSocket conectado a {self.ws_url}")
         if self.ws_pending_message:
-            self.websocket.sendTextMessage(self.ws_pending_message)
+            self.websocket.sendBinaryMessage(self.ws_pending_message)
             print(f"Mensaje WebSocket enviado: {self.ws_pending_message}")
             self.ws_pending_message = None
 
     def _on_ws_disconnected(self):
         print("WebSocket desconectado")
     
-    def _on_ws_message_received(self, message):
+    def _on_ws_message(self, message):
         print(f"Mensaje WebSocket recibido: {message}")
         self.message = message
         self.label.setText(f"Mensaje recibido: {self.message}")
 
     # def _send_ws_message(self, message):
     #     if self.websocket.state() == QAbstractSocket.ConnectedState:
-    #         self.websocket.sendTextMessage(message)
+    #         self.websocket.sendBinaryMessage(message)
     #         print(f"Mensaje WebSocket enviado: {message}")
     #         return
 

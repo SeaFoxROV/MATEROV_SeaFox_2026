@@ -51,7 +51,7 @@ class CameraWidget(QFrame):
         self.camera_configs = {
             "main": "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000",
             "upper": "http://admin:admin@192.168.1.67:6688/snapshot/PROFILE_000",
-            "middle": "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000",
+            "middle": "http://admin:admin@192.168.1.69:6688/snapshot/PROFILE_000",
         }
         self.titles = {}
         self.threads = {}
@@ -138,7 +138,7 @@ class CameraWidget(QFrame):
             if response.status_code == 200:
                 array = np.frombuffer(response.content, dtype=np.uint8)
                 cv_img = cv2.imdecode(array, cv2.IMREAD_COLOR)
-                return cv_img
+                return array.tobytes()
         except Exception as e:
             print(f"Error getting snapshot: {e}")
         return ("Error al obtener la imagen")
