@@ -2,6 +2,9 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtWebSockets import QWebSocket
 from PyQt5.QtNetwork import QAbstractSocket
+from PyQt5.QtGui import QImage, QPixmap
+import cv2
+import numpy as np
 
 class Photogrammetry(QWidget):
     def __init__(self):
@@ -20,6 +23,8 @@ class Photogrammetry(QWidget):
 
         layout = QVBoxLayout()
         self.label = QLabel(f"Mensaje recibido: {self.message}")
+        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setFixedSize(640, 480)
         layout.addWidget(self.label)
 
         self.setLayout(layout)
@@ -35,9 +40,22 @@ class Photogrammetry(QWidget):
         print("WebSocket desconectado")
     
     def _on_ws_message(self, message):
+        self.set_image(message)
         print(f"Mensaje WebSocket recibido: {message}")
-        self.message = message
-        self.label.setText(f"Mensaje recibido: {self.message}")
+
+    def set_image(self, image):
+        cv_img = np.frombuffer(image, dtype=np.uint8)
+        cv_img = cv2.imdecode(cv_img, cv2.IMREAD_COLOR)
+        if cv_img is not None:
+            height, width, channel = cv_img.shape
+            bytes_per_line = 3 * width
+            # to Qt
+            q_img = QImage(cv_img.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
+            # label signal
+            pixmap = QPixmap.fromImage(q_img).scaled(
+            self.label.width(), self.label.height(), Qt.KeepAspectRatio, Qt.SmoothTransformation
+            )
+            self.label.setPixmap(pixmap)
 
     # def _send_ws_message(self, message):
     #     if self.websocket.state() == QAbstractSocket.ConnectedState:
