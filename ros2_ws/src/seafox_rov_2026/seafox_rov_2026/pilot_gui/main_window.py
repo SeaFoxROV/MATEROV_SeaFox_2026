@@ -69,6 +69,17 @@ class MainWindow(QMainWindow):
         elif event.key() == Qt.Key_Space and self.selected_camera:
             self.websocket._send_ws_message(self.left_widget.get_snapshot())
 
+        # Crab detection
+        elif event.text() == 'D':
+            if self.selected_camera:
+                for thread in self.left_widget.threads.values():
+                    print(self.left_widget.selected_camera)
+                    thread.start_detection(self.left_widget.selected_camera)
+        
+        elif event.text() == 'd':
+            for thread in self.left_widget.threads.values():
+                thread.stop_detection()
+
         # Quick conf
         elif event.text() == 'B':
             if self.all_cameras:

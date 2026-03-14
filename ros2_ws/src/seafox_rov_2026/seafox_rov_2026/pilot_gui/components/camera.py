@@ -5,6 +5,7 @@ import requests
 from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QLabel, QWidget
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QImage, QPixmap
+from lib.vision.crabDetection import CrabDetector
 
 from .camera_quick_config import ImageAdjuster
 
@@ -20,6 +21,9 @@ class VideoThread(QThread):
         self.session = requests.Session()
         self.apply_adjustments = False
 
+        self.detecter = CrabDetector()
+        self.isDetecting = False
+
     def run(self):
         while self._run_flag:
             try:
@@ -31,6 +35,9 @@ class VideoThread(QThread):
 
                     if cv_img is not None:
                         cv_img = self.adjuster.apply(cv_img)
+                        if self.isDetecting:
+                            print("Haciendo deteccion")
+                            cv_img, count = self.detecter.detect(cv_img)
                         height, width, channel = cv_img.shape
                         bytes_per_line = 3 * width
                         # to Qt
@@ -39,6 +46,15 @@ class VideoThread(QThread):
                         self.change_pixmap_signal.emit(q_img)
             except Exception as e:
                 self.msleep(100)
+
+    def start_detection(self,name):
+        print(self.name)
+        if self.name == name:
+            # print("ENTRASTE")
+            self.isDetecting = True
+    
+    def stop_detection(self):
+        self.isDetecting = False
 
     def stop(self):
         self._run_flag = False
