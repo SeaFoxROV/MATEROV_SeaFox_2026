@@ -1,3 +1,4 @@
+from email.mime import message
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QHBoxLayout
 from PyQt5.QtCore import Qt
@@ -30,6 +31,7 @@ class MainWindow(QMainWindow):
         layout.setStretch(0, 1)
         layout.setStretch(1, 1)
 
+
     def keyPressEvent(self, event):
         # Camera selection
         if event.text() == '1':
@@ -60,6 +62,25 @@ class MainWindow(QMainWindow):
                 self.left_widget.set_title_style(name, "font-weight: bold; color: white; background-color: #333;")
         elif event.key() == Qt.Key_Escape:
             self.left_widget.reset_camera_view()
+
+        # WebSocket conf
+        elif event.key() == Qt.Key_Space and self.selected_camera:
+            if self.selected_camera:
+                for thread in self.left_widget.threads.values():
+                    print(self.left_widget.selected_camera)
+                    thread.send_snapshot(self.left_widget.selected_camera)
+                # self.left_widget.get_snapshot()
+
+        # Crab detection
+        elif event.text() == 'D':
+            if self.selected_camera:
+                for thread in self.left_widget.threads.values():
+                    print(self.left_widget.selected_camera)
+                    thread.start_detection(self.left_widget.selected_camera)
+        
+        elif event.text() == 'd':
+            for thread in self.left_widget.threads.values():
+                thread.stop_detection()
 
         # Quick conf
         elif event.text() == 'B':

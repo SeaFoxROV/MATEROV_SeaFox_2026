@@ -3,8 +3,10 @@ import cv2
 import numpy as np
 import requests
 from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QLabel, QWidget
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QBuffer
 from PyQt5.QtGui import QImage, QPixmap
+from lib.vision.crabDetection import CrabDetector
+from components.websocket import WebSocket
 
 from .camera_quick_config import ImageAdjuster
 
@@ -19,6 +21,12 @@ class VideoThread(QThread):
         self.adjuster = adjuster
         self.session = requests.Session()
         self.apply_adjustments = False
+        self.qimg = None
+
+        self.detecter = CrabDetector()
+        self.isDetecting = False
+
+        self.websocket = WebSocket()
 
     def run(self):
         while self._run_flag:
@@ -31,18 +39,43 @@ class VideoThread(QThread):
 
                     if cv_img is not None:
                         cv_img = self.adjuster.apply(cv_img)
+                        if self.isDetecting:
+                            print("Haciendo deteccion")
+                            cv_img, count = self.detecter.detect(cv_img)
                         height, width, channel = cv_img.shape
                         bytes_per_line = 3 * width
                         # to Qt
                         q_img = QImage(cv_img.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
                         # label signal
                         self.change_pixmap_signal.emit(q_img)
+                        self.qimg = q_img
             except Exception as e:
                 self.msleep(100)
+
+    def start_detection(self,name):
+        print(self.name)
+        if self.name == name:
+            # print("ENTRASTE")
+            self.isDetecting = True
+    
+    def stop_detection(self):
+        self.isDetecting = False
 
     def stop(self):
         self._run_flag = False
         self.wait()
+        
+    def send_snapshot(self,name):
+        if self.name != name:
+            return
+        qimg = self.qimg.scaled(320, 240, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        buffer = QBuffer()
+        buffer.open(QBuffer.WriteOnly)
+        qimg.save(buffer, "JPEG", quality=85)  # o "PNG" si prefieres sin pérdida
+        image_bytes = buffer.data()  # Esto es QByteArray
+        buffer.close()
+        
+        self.websocket._send_ws_message(image_bytes)
 
 class CameraWidget(QFrame):
     def __init__(self):
@@ -51,7 +84,7 @@ class CameraWidget(QFrame):
         self.camera_configs = {
             "main": "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000",
             "upper": "http://admin:admin@192.168.1.67:6688/snapshot/PROFILE_000",
-            "middle": "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000",
+            "middle": "http://admin:admin@192.168.1.69:6688/snapshot/PROFILE_000",
         }
         self.titles = {}
         self.threads = {}
