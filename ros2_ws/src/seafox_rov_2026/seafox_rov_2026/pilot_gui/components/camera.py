@@ -3,9 +3,10 @@ import cv2
 import numpy as np
 import requests
 from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QLabel, QWidget
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QBuffer
 from PyQt5.QtGui import QImage, QPixmap
 from lib.vision.crabDetection import CrabDetector
+from components.websocket import WebSocket
 
 from .camera_quick_config import ImageAdjuster
 
@@ -20,9 +21,12 @@ class VideoThread(QThread):
         self.adjuster = adjuster
         self.session = requests.Session()
         self.apply_adjustments = False
+        self.qimg = None
 
         self.detecter = CrabDetector()
         self.isDetecting = False
+
+        self.websocket = WebSocket()
 
     def run(self):
         while self._run_flag:
@@ -44,6 +48,7 @@ class VideoThread(QThread):
                         q_img = QImage(cv_img.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
                         # label signal
                         self.change_pixmap_signal.emit(q_img)
+                        self.qimg = q_img
             except Exception as e:
                 self.msleep(100)
 
@@ -59,6 +64,18 @@ class VideoThread(QThread):
     def stop(self):
         self._run_flag = False
         self.wait()
+        
+    def send_snapshot(self,name):
+        if self.name != name:
+            return
+        qimg = self.qimg.scaled(320, 240, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        buffer = QBuffer()
+        buffer.open(QBuffer.WriteOnly)
+        qimg.save(buffer, "JPEG", quality=85)  # o "PNG" si prefieres sin pérdida
+        image_bytes = buffer.data()  # Esto es QByteArray
+        buffer.close()
+        
+        self.websocket._send_ws_message(image_bytes)
 
 class CameraWidget(QFrame):
     def __init__(self):
@@ -144,21 +161,6 @@ class CameraWidget(QFrame):
     def reset_camera_view(self):
         for label in self.labels.values():
             label.parent().show()
-    
-    def get_snapshot(self):
-        if self.selected_camera is None:
-            return ("No hay camera seleccionada")
-        url = self.camera_configs[self.selected_camera]
-        try:
-            response = requests.get(url, timeout=0.6)
-            if response.status_code == 200:
-                array = np.frombuffer(response.content, dtype=np.uint8)
-                cv_img = cv2.imdecode(array, cv2.IMREAD_COLOR)
-                return array.tobytes()
-        except Exception as e:
-            print(f"Error getting snapshot: {e}")
-        return ("Error al obtener la imagen")
-        
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

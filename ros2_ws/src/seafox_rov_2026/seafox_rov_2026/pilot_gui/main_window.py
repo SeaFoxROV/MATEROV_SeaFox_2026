@@ -5,7 +5,6 @@ from PyQt5.QtCore import Qt
 
 from components.camera import CameraWidget
 from components.model import ModelWidget
-from components.websocket import WebSocket
 
 
 class MainWindow(QMainWindow):
@@ -32,7 +31,6 @@ class MainWindow(QMainWindow):
         layout.setStretch(0, 1)
         layout.setStretch(1, 1)
 
-        self.websocket = WebSocket()
 
     def keyPressEvent(self, event):
         # Camera selection
@@ -67,7 +65,11 @@ class MainWindow(QMainWindow):
 
         # WebSocket conf
         elif event.key() == Qt.Key_Space and self.selected_camera:
-            self.websocket._send_ws_message(self.left_widget.get_snapshot())
+            if self.selected_camera:
+                for thread in self.left_widget.threads.values():
+                    print(self.left_widget.selected_camera)
+                    thread.send_snapshot(self.left_widget.selected_camera)
+                # self.left_widget.get_snapshot()
 
         # Crab detection
         elif event.text() == 'D':
