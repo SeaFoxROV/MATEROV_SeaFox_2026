@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtWebSockets import QWebSocket
 from PyQt5.QtNetwork import QAbstractSocket
@@ -43,16 +43,28 @@ class Photogrammetry(QWidget):
 
         self.widthLabelText = None
         self.heightLabelText = None
+        self.realWidthLabelText = None
+        self.realHeightLabelText = None
 
         self.mode = 1  # impar para ancho par para alto
 
         self.widthLabel = QLabel(f"Ancho: {self.widthLabelText}")
         self.heightLabel = QLabel(f"Alto: {self.heightLabelText}")
-        # self.realWidthLabel = QLineEdit()
+
+        self.realHeightLabel = QLineEdit()
+        self.realHeightLabel.setPlaceholderText("Alto real")
+
+        self.realWidthLabel = QLineEdit()
+        self.realWidthLabel.setPlaceholderText("Ancho real")
+
+        self.calculateBtn = QPushButton("Calcular")
+        self.calculateBtn.clicked.connect(self.calculate)
 
         layout.addWidget(self.widthLabel)
         layout.addWidget(self.heightLabel)
-        # layout.addWidget(self.realWidthLabel)
+        layout.addWidget(self.realHeightLabel)
+        layout.addWidget(self.realWidthLabel)
+        layout.addWidget(self.calculateBtn)
 
     def _on_ws_connected(self):
         print(f"WebSocket conectado a {self.ws_url}")
@@ -117,3 +129,37 @@ class Photogrammetry(QWidget):
         self.heightLabelText = height
         self.heightLabel.setText(f"Alto: {self.heightLabelText}")
         print(f"Alto establecido: {self.heightLabelText}")
+
+    def calculate(self):
+        if not self.widthLabelText or not self.heightLabelText:
+            print("Faltan puntos de ancho o alto en píxeles")
+            return
+
+        realWidth = self.realWidthLabel.text().strip()
+        realHeight = self.realHeightLabel.text().strip()
+
+        # Validar que solo uno esté lleno
+        if realWidth and realHeight:
+            print("Llena solo uno de los dos campos")
+            return
+
+        if not realWidth and not realHeight:
+            print("Llena al menos un campo")
+            return
+
+        try:
+            if realWidth:
+                # Tengo ancho real → calculo alto real
+                # alto_real / ancho_real = heightPx / widthPx
+                result = (float(realWidth) * self.heightLabelText) / self.widthLabelText
+                self.realHeightLabel.setText(str(round(result, 4)))
+
+            else:
+                # Tengo alto real → calculo ancho real
+                result = (
+                    float(realHeight) * self.widthLabelText
+                ) / self.heightLabelText
+                self.realWidthLabel.setText(str(round(result, 4)))
+
+        except ValueError:
+            print("El valor ingresado no es un número válido")
