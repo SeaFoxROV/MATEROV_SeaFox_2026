@@ -5,6 +5,8 @@ from PyQt5.QtNetwork import QAbstractSocket
 from PyQt5.QtGui import QImage, QPixmap
 import cv2
 import numpy as np
+from lib.imageManager import imageManager
+
 
 class Photogrammetry(QWidget):
     def __init__(self):
@@ -29,6 +31,12 @@ class Photogrammetry(QWidget):
 
         self.setLayout(layout)
 
+        self.image_manager = imageManager()
+        self.points = []
+
+        self.label.setMouseTracking(True)
+        self.label.mousePressEvent = self._on_mouse_press
+
     def _on_ws_connected(self):
         print(f"WebSocket conectado a {self.ws_url}")
         if self.ws_pending_message:
@@ -38,7 +46,7 @@ class Photogrammetry(QWidget):
 
     def _on_ws_disconnected(self):
         print("WebSocket desconectado")
-    
+
     def _on_ws_message(self, message):
         self.set_image(message)
         print(f"Mensaje WebSocket recibido: {message}")
@@ -50,12 +58,35 @@ class Photogrammetry(QWidget):
             height, width, channel = cv_img.shape
             bytes_per_line = 3 * width
             # to Qt
-            q_img = QImage(cv_img.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
+            q_img = QImage(
+                cv_img.data, width, height, bytes_per_line, QImage.Format_RGB888
+            ).rgbSwapped()
             # label signal
             pixmap = QPixmap.fromImage(q_img).scaled(
-            self.label.width(), self.label.height(), Qt.KeepAspectRatio, Qt.SmoothTransformation
+                self.label.width(),
+                self.label.height(),
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation,
             )
             self.label.setPixmap(pixmap)
+            self.image_manager.set_image(q_img)
+
+    def _on_mouse_press(self, event):
+        if self.image_manager.image is None:
+            return
+
+        pos = event.pos()
+        self.points.append((pos.x(), pos.y()))
+        print(f"Coordenada seleccionada: {pos.x()}, {pos.y()}")
+
+        if len(self.points) == 2:
+            p1, p2 = self.points
+            distance = self.image_manager.pixel_distance(self.label, p1, p2)
+
+            if distance is not None:
+                print(f"Distancia entre puntos: {distance:.2f} píxeles")
+
+        self.points = []
 
     # def _send_ws_message(self, message):
     #     if self.websocket.state() == QAbstractSocket.ConnectedState:
@@ -66,3 +97,4 @@ class Photogrammetry(QWidget):
     #     self.ws_pending_message = message
     #     print(f"Conectando WebSocket a {self.ws_url}...")
     #     self.websocket.open(QUrl(self.ws_url))
+
