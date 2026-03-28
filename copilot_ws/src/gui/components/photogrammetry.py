@@ -5,6 +5,10 @@ from PyQt5.QtNetwork import QAbstractSocket
 from PyQt5.QtGui import QImage, QPixmap
 import cv2
 import numpy as np
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from lib.imageManager import imageManager
 
 
@@ -12,7 +16,7 @@ class Photogrammetry(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.ws_url = "ws://10.4.68.201:3001"
+        self.ws_url = "ws://10.4.65.90:3001"
         self.ws_pending_message = None
         self.websocket = QWebSocket()
         self.websocket.connected.connect(self._on_ws_connected)
@@ -78,15 +82,15 @@ class Photogrammetry(QWidget):
         pos = event.pos()
         self.points.append((pos.x(), pos.y()))
         print(f"Coordenada seleccionada: {pos.x()}, {pos.y()}")
-
+        print(len(self.points))
         if len(self.points) == 2:
+            print("AA")
             p1, p2 = self.points
             distance = self.image_manager.pixel_distance(self.label, p1, p2)
 
             if distance is not None:
                 print(f"Distancia entre puntos: {distance:.2f} píxeles")
-
-        self.points = []
+            self.points = []
 
     # def _send_ws_message(self, message):
     #     if self.websocket.state() == QAbstractSocket.ConnectedState:
@@ -97,4 +101,3 @@ class Photogrammetry(QWidget):
     #     self.ws_pending_message = message
     #     print(f"Conectando WebSocket a {self.ws_url}...")
     #     self.websocket.open(QUrl(self.ws_url))
-
