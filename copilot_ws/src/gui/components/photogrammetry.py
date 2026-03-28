@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtWebSockets import QWebSocket
 from PyQt5.QtNetwork import QAbstractSocket
@@ -40,6 +40,19 @@ class Photogrammetry(QWidget):
 
         self.label.setMouseTracking(True)
         self.label.mousePressEvent = self._on_mouse_press
+
+        self.widthLabelText = None
+        self.heightLabelText = None
+
+        self.mode = 1  # impar para ancho par para alto
+
+        self.widthLabel = QLabel(f"Ancho: {self.widthLabelText}")
+        self.heightLabel = QLabel(f"Alto: {self.heightLabelText}")
+        # self.realWidthLabel = QLineEdit()
+
+        layout.addWidget(self.widthLabel)
+        layout.addWidget(self.heightLabel)
+        # layout.addWidget(self.realWidthLabel)
 
     def _on_ws_connected(self):
         print(f"WebSocket conectado a {self.ws_url}")
@@ -84,20 +97,23 @@ class Photogrammetry(QWidget):
         print(f"Coordenada seleccionada: {pos.x()}, {pos.y()}")
         print(len(self.points))
         if len(self.points) == 2:
-            print("AA")
             p1, p2 = self.points
             distance = self.image_manager.pixel_distance(self.label, p1, p2)
 
-            if distance is not None:
-                print(f"Distancia entre puntos: {distance:.2f} píxeles")
+            if self.mode % 2 == 1:
+                self.setWidth(distance)
+            else:
+                self.setHeight(distance)
+
             self.points = []
+            self.mode += 1
 
-    # def _send_ws_message(self, message):
-    #     if self.websocket.state() == QAbstractSocket.ConnectedState:
-    #         self.websocket.sendBinaryMessage(message)
-    #         print(f"Mensaje WebSocket enviado: {message}")
-    #         return
+    def setWidth(self, width):
+        self.widthLabelText = width
+        self.widthLabel.setText(f"Ancho: {self.widthLabelText}")
+        print(f"Ancho establecido: {self.widthLabelText}")
 
-    #     self.ws_pending_message = message
-    #     print(f"Conectando WebSocket a {self.ws_url}...")
-    #     self.websocket.open(QUrl(self.ws_url))
+    def setHeight(self, height):
+        self.heightLabelText = height
+        self.heightLabel.setText(f"Alto: {self.heightLabelText}")
+        print(f"Alto establecido: {self.heightLabelText}")
