@@ -6,11 +6,12 @@ from components.eDNA import eDNA
 from components.iceberg import Iceberg
 from components.photogrammetry import Photogrammetry
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Mi Template PyQt5")
+        self.setWindowTitle("Copilot GUI")
         self.resize(900, 600)
 
         self.tabs = QTabWidget()
@@ -28,3 +29,4 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
+

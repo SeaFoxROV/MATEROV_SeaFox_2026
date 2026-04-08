@@ -11,7 +11,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("PyQt5 - División Vertical")
+        self.setWindowTitle("Pilot GUI")
         self.setGeometry(100, 100, 800, 500)
         self.all_cameras = False
         self.selected_camera = None
