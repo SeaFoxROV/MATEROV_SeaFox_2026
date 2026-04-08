@@ -16,7 +16,7 @@ from lib.vision.crabDetection import CrabDetector
 from components.websocket import WebSocket
 
 from .camera_quick_config import ImageAdjuster
-# TODO: Revisar como se va a comportar la camara con el resize
+# TODO: Revisar como se va a comportar la camara con el resize en linux
 
 
 class VideoThread(QThread):
@@ -105,6 +105,7 @@ class CameraWidget(QFrame):
         self.titles = {}
         self.threads = {}
         self.labels = {}
+        self.camera_containers = {}
         self.selected_camera = None
         self.setFrameShape(QFrame.StyledPanel)
         main_layout = QVBoxLayout()
@@ -112,7 +113,9 @@ class CameraWidget(QFrame):
         for name, url in self.camera_configs.items():
             adjuster = ImageAdjuster()
 
+            container = QWidget()
             camera_layout = QVBoxLayout()
+            camera_layout.setContentsMargins(0, 0, 0, 0)
 
             title = QLabel(name.upper())
             title.setAlignment(Qt.AlignCenter)
@@ -132,7 +135,10 @@ class CameraWidget(QFrame):
 
             camera_layout.addWidget(title)
             camera_layout.addWidget(image_label)
-            main_layout.addLayout(camera_layout)
+            container.setLayout(camera_layout)
+
+            main_layout.addWidget(container)
+            self.camera_containers[name] = container
 
             thread = VideoThread(name, url, adjuster)
             thread.change_pixmap_signal.connect(
@@ -175,15 +181,15 @@ class CameraWidget(QFrame):
             self.titles[camera_name].setStyleSheet(style)
 
     def maximize_camera(self, camera_name):
-        for name, label in self.labels.items():
+        for name, container in self.camera_containers.items():
             if name == camera_name:
-                label.parent().show()
+                container.show()
             else:
-                label.parent().hide()
+                container.hide()
 
     def reset_camera_view(self):
-        for label in self.labels.values():
-            label.parent().show()
+        for container in self.camera_containers.values():
+            container.show()
 
 
 if __name__ == "__main__":
