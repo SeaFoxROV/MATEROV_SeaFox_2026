@@ -15,18 +15,12 @@ def generate_launch_description():
             name='joystick_to_twist',
             output='screen',
     ),
-        Node(
+    Node(
             package='seafox_rov_2026',  # Reemplaza con el nombre de tu paquete
-            executable='twist_to_newtons',  # Reemplaza con el nombre del ejecutable de tu nodo
-            name='twist_to_newtons',
+            executable='twist_to_pwm',  # Reemplaza con el nombre del ejecutable de tu nodo
+            name='twist_to_pwm',
             output='screen',
-        ),
-        Node(
-            package='seafox_rov_2026',  # Reemplaza con el nombre de tu paquete
-            executable='newtons_to_pwm',  # Reemplaza con el nombre del ejecutable de tu nodo
-            name='newtons_to_pwm',
-            output='screen',
-        )
+    ),
           
 
 

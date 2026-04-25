@@ -29,8 +29,7 @@ data_files=[
                 #control scripts
                 'joystick_reader = seafox_rov_2026.control.a_joystick_reader:main',
                 'joystick_to_twist = seafox_rov_2026.control.b_joystick_to_twist:main',
-                'twist_to_newtons = seafox_rov_2026.control.c_twist_to_newtons:main',
-                'newtons_to_pwm = seafox_rov_2026.control.d_newtons_to_pwm:main',
+                'twist_to_pwm = seafox_rov_2026.control.f_twist_to_pwm:main',
         ],
     },
 )

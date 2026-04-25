@@ -13,7 +13,6 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float32MultiArray
 
-from scipy.optimize import curve_fit
 import numpy as np
 
 from os import path

@@ -18,8 +18,6 @@ class MotionController(Node):
         
         self.last_user_velocity_command = Twist()
 
-        self.pwm_tick = 2.5
-
         self.pwms = Float32MultiArray()
 
         self.pwms.data = [1500.0]*3
@@ -42,23 +40,21 @@ class MotionController(Node):
         right_joy_y = msg.data[4]
 
 
-        self.last_user_velocity_command.linear.x = -right_joy_x
+        self.last_user_velocity_command.linear.x = -left_joy_y
         self.last_user_velocity_command.linear.y = left_joy_x
         
-        if right_trigger > -0.5:
+        if right_trigger > -0.4:
             right_trigger = 1
+        if left_trigger > -0.4:
+            left_trigger = 1
         self.last_user_velocity_command.linear.z = (right_trigger - left_trigger)/2
-        self.last_user_velocity_command.angular.x = left_joy_y
-        self.last_user_velocity_command.angular.y = right_joy_y
+
+        self.last_user_velocity_command.angular.z = right_joy_x
+        self.last_user_velocity_command.angular.x = right_joy_y
         
         self.pwms.data[0] = 1500
 
-        if bool(msg.data):
-            self.pwms.data[0] = 1400
-        if bool(msg.data[11]):
-            self.pwms.data[0] = 1600
-        if bool(msg.data[10]) and bool(msg.data[11]):
-            self.pwms.data[0] = 1500
+
         self.last_command_time = self.get_clock().now()
 
         
@@ -69,11 +65,14 @@ class MotionController(Node):
             self.last_user_velocity_command = Twist()
         
         cmd_vel = Twist()
+
         cmd_vel.linear.x = self.last_user_velocity_command.linear.x
         cmd_vel.linear.y = self.last_user_velocity_command.linear.y
         cmd_vel.linear.z = self.last_user_velocity_command.linear.z
+
         cmd_vel.angular.x = self.last_user_velocity_command.angular.x
         cmd_vel.angular.y = self.last_user_velocity_command.angular.y 
+        cmd_vel.angular.z = self.last_user_velocity_command.angular.z 
         
         self.gripper_pub.publish(self.pwms)
 
