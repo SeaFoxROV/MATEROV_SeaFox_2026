@@ -2,13 +2,22 @@ import sys
 import cv2
 import numpy as np
 import requests
-from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QLabel, QWidget
+from PyQt5.QtWidgets import (
+    QApplication,
+    QFrame,
+    QVBoxLayout,
+    QLabel,
+    QWidget,
+    QSizePolicy,
+)
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QBuffer
 from PyQt5.QtGui import QImage, QPixmap
 from lib.vision.crabDetection import CrabDetector
 from components.websocket import WebSocket
 
 from .camera_quick_config import ImageAdjuster
+# TODO: Revisar como se va a comportar la camara con el resize en linux
+
 
 class VideoThread(QThread):
     change_pixmap_signal = pyqtSignal(QImage)
@@ -32,7 +41,7 @@ class VideoThread(QThread):
         while self._run_flag:
             try:
                 # snapshot
-                response = self.session.get(self.url, timeout=0.6)
+                response = self.session.get(self.url, timeout=0.3)
                 if response.status_code == 200:
                     array = np.frombuffer(response.content, dtype=np.uint8)
                     cv_img = cv2.imdecode(array, cv2.IMREAD_COLOR)
@@ -45,27 +54,33 @@ class VideoThread(QThread):
                         height, width, channel = cv_img.shape
                         bytes_per_line = 3 * width
                         # to Qt
-                        q_img = QImage(cv_img.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
+                        q_img = QImage(
+                            cv_img.data,
+                            width,
+                            height,
+                            bytes_per_line,
+                            QImage.Format_RGB888,
+                        ).rgbSwapped()
                         # label signal
                         self.change_pixmap_signal.emit(q_img)
                         self.qimg = q_img
             except Exception as e:
                 self.msleep(100)
 
-    def start_detection(self,name):
+    def start_detection(self, name):
         print(self.name)
         if self.name == name:
             # print("ENTRASTE")
             self.isDetecting = True
-    
+
     def stop_detection(self):
         self.isDetecting = False
 
     def stop(self):
         self._run_flag = False
         self.wait()
-        
-    def send_snapshot(self,name):
+
+    def send_snapshot(self, name):
         if self.name != name:
             return
         qimg = self.qimg.scaled(320, 240, Qt.KeepAspectRatio, Qt.SmoothTransformation)
@@ -74,13 +89,14 @@ class VideoThread(QThread):
         qimg.save(buffer, "JPEG", quality=85)  # o "PNG" si prefieres sin pérdida
         image_bytes = buffer.data()  # Esto es QByteArray
         buffer.close()
-        
+
         self.websocket._send_ws_message(image_bytes)
+
 
 class CameraWidget(QFrame):
     def __init__(self):
         super().__init__()
-        
+
         self.camera_configs = {
             "main": "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000",
             "upper": "http://admin:admin@192.168.1.67:6688/snapshot/PROFILE_000",
@@ -89,6 +105,7 @@ class CameraWidget(QFrame):
         self.titles = {}
         self.threads = {}
         self.labels = {}
+        self.camera_containers = {}
         self.selected_camera = None
         self.setFrameShape(QFrame.StyledPanel)
         main_layout = QVBoxLayout()
@@ -96,22 +113,32 @@ class CameraWidget(QFrame):
         for name, url in self.camera_configs.items():
             adjuster = ImageAdjuster()
 
+            container = QWidget()
             camera_layout = QVBoxLayout()
+            camera_layout.setContentsMargins(0, 0, 0, 0)
 
             title = QLabel(name.upper())
             title.setAlignment(Qt.AlignCenter)
-            title.setStyleSheet("font-weight: bold; color: white; background-color: #333;")
+            title.setStyleSheet(
+                "font-weight: bold; color: white; background-color: #333;"
+            )
             self.titles[name] = title
 
             image_label = QLabel("Conectando...")
             image_label.setAlignment(Qt.AlignCenter)
-            image_label.setFixedSize(640, 480)
-            image_label.setStyleSheet("background-color: black; border: 1px solid gray;")
+            image_label.setMinimumSize(1, 1)
+            image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            image_label.setStyleSheet(
+                "background-color: black; border: 1px solid gray;"
+            )
             self.labels[name] = image_label
 
             camera_layout.addWidget(title)
             camera_layout.addWidget(image_label)
-            main_layout.addLayout(camera_layout)
+            container.setLayout(camera_layout)
+
+            main_layout.addWidget(container)
+            self.camera_containers[name] = container
 
             thread = VideoThread(name, url, adjuster)
             thread.change_pixmap_signal.connect(
@@ -132,7 +159,7 @@ class CameraWidget(QFrame):
         for thread in self.threads.values():
             thread.stop()
         event.accept()
-    
+
     def select_camera(self, camera_name):
         for name, thread in self.threads.items():
             thread.apply_adjustments = False
@@ -144,32 +171,35 @@ class CameraWidget(QFrame):
         if self.selected_camera is None:
             return None
         return self.threads[self.selected_camera].adjuster
-    
+
     def set_title_style(self, camera_name, style):
         for name in self.titles.keys():
-            self.titles[name].setStyleSheet("font-weight: bold; color: white; background-color: #333;")
+            self.titles[name].setStyleSheet(
+                "font-weight: bold; color: white; background-color: #333;"
+            )
         if camera_name in self.titles:
             self.titles[camera_name].setStyleSheet(style)
 
     def maximize_camera(self, camera_name):
-        for name, label in self.labels.items():
+        for name, container in self.camera_containers.items():
             if name == camera_name:
-                label.parent().show()
+                container.show()
             else:
-                label.parent().hide()
+                container.hide()
 
     def reset_camera_view(self):
-        for label in self.labels.values():
-            label.parent().show()
+        for container in self.camera_containers.values():
+            container.show()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = QWidget()
     win_layout = QVBoxLayout()
-    
+
     cam_widget = CameraWidget()
     win_layout.addWidget(cam_widget)
-    
+
     window.setLayout(win_layout)
     window.setWindowTitle("SeaFox ROV - Multi-Camera System")
     window.show()

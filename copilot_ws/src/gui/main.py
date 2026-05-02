@@ -5,12 +5,14 @@ from components.crabVision import crabVision
 from components.eDNA import eDNA
 from components.iceberg import Iceberg
 from components.photogrammetry import Photogrammetry
+from components.percentage_species import Ventana
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Mi Template PyQt5")
+        self.setWindowTitle("Copilot GUI")
         self.resize(900, 600)
 
         self.tabs = QTabWidget()
