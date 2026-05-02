@@ -21,6 +21,12 @@ def generate_launch_description():
             name='twist_to_pwm',
             output='screen',
     ),
+        Node(
+            package='seafox_rov_2026',  # Reemplaza con el nombre de tu paquete
+            executable='udp_publisher',  # Reemplaza con el nombre del ejecutable de tu nodo
+            name='udp_publisher',
+            output='screen',
+    ),
           
 
 

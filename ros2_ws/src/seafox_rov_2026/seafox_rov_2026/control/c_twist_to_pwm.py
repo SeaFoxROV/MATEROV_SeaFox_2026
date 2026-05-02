@@ -6,6 +6,7 @@ from std_msgs.msg import Float32MultiArray, Int16MultiArray
 
 
 class TwistToPWM(Node):
+    STEP = 50
 
     def __init__(self):
         super().__init__("twist_to_pwm")
@@ -40,6 +41,16 @@ class TwistToPWM(Node):
         except:
             pass
 
+        try:
+            if msg.data[-1] == -1.0:
+                self.pwm_values[7] = 1600
+            elif msg.data[-1] == 1.0:
+                self.pwm_values[7] = 1400
+            else:
+                self.pwm_values[7] = 1550
+        except:
+            pass
+
     # ---------------- MIXING ----------------
     def setpoint_callback(self, msg: Twist):
 
@@ -57,25 +68,33 @@ class TwistToPWM(Node):
         # Thruster mixing
         self.pwm_setpoints[0] = base + x + y - yaw       # M1
         self.pwm_setpoints[1] = base + z + roll          # M2
-        self.pwm_setpoints[2] = base - x + y + yaw       # M3
+        self.pwm_setpoints[2] = 1500#base - x + y + yaw       # M3
         self.pwm_setpoints[3] = base + x - y + yaw       # M4
         self.pwm_setpoints[4] = base + z - roll          # M5
         self.pwm_setpoints[5] = base - x - y - yaw       # M6
 
         # Clamp
         for i in range(6):
+            if self.pwm_setpoints[i] > 1460  and self.pwm_setpoints[i] < 1540:
+                self.pwm_setpoints[i] = 1550
             self.pwm_setpoints[i] = self.clamp(self.pwm_setpoints[i])
 
     # ---------------- OUTPUT ----------------
+
     def pwm_callback(self):
 
-        # Combina setpoints + extras
         for i in range(6):
-            self.pwm_values[i] = self.pwm_setpoints[i]
+            diff = self.pwm_setpoints[i] - self.pwm_values[i]
+
+            if abs(diff) <= self.STEP:
+                self.pwm_values[i] = self.pwm_setpoints[i]  # llegó
+            elif diff > 0:
+                self.pwm_values[i] += self.STEP
+            else:
+                self.pwm_values[i] -= self.STEP
 
         msg = Int16MultiArray()
         msg.data = self.pwm_values
-
         self.pwm_pub.publish(msg)
 
 

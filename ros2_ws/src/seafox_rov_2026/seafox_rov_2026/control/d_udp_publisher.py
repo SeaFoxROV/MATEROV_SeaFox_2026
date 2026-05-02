@@ -45,8 +45,8 @@ class PwmUdpSender(Node):
     def send_udp(self):
         """Manda los últimos PWM por UDP cada TIMER_MS ms."""
 
-        payload = str(self.last_pwm[0])+";"+str(self.last_pwm[0])+";"+str(self.last_pwm[0])+";"+str(self.last_pwm[0])+";"+str(self.last_pwm[0])+";"+str(self.last_pwm[0])#";".join(str(v) for v in self.last_pwm)
-        print(payload)
+        payload = ";".join(str(v) for v in self.last_pwm)
+        #print(payload)
         self.sock.sendto(payload.encode(), self.target)
         self.get_logger().debug(f"Enviado: {payload}")
 

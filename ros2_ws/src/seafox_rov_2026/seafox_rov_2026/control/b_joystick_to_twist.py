@@ -23,14 +23,25 @@ class MotionController(Node):
         self.pwms.data = [1500.0]*3
 
         self.last_command_time = self.get_clock().now()
+        self.last_joy = self.get_clock().now()
+
         
         self.timer = self.create_timer(1.0/30.0, self.motion)
 
+        self.create_timer(1.0, self.check_connection)
+
+    def check_connection(self):
+        joy_elapsed = (self.get_clock().now() - self.last_joy).nanoseconds / 1e9
+        if joy_elapsed > 1.0:
+            self.get_logger().error("Sin señal de joystick")
+
     def joy_callback(self, msg: Joy):
-        if len(msg.data) < 6:
-            self.get_logger().error(f"Received less axes than expected: got {len(msg.data)}, expected at least 6")
+
+        if len(msg.data) < 6 :
             return
-        #[leftx,lefty,lefttrigger,rightx,righty,rightrigger,A,B,X,Y,LT,RT,BACK,SELECT,crossx,crossy]
+        self.last_joy = self.get_clock().now()
+
+                #[leftx,lefty,lefttrigger,rightx,righty,rightrigger,A,B,X,Y,LT,RT,BACK,SELECT,crossx,crossy]
         # Map joystick axes to velocity command
         left_joy_x = msg.data[0]      # Sides
         left_joy_y = msg.data[1]      # Forward/Back
