@@ -41,7 +41,7 @@ class VideoThread(QThread):
         while self._run_flag:
             try:
                 # snapshot
-                response = self.session.get(self.url, timeout=0.6)
+                response = self.session.get(self.url, timeout=0.3)
                 if response.status_code == 200:
                     array = np.frombuffer(response.content, dtype=np.uint8)
                     cv_img = cv2.imdecode(array, cv2.IMREAD_COLOR)
@@ -204,4 +204,3 @@ if __name__ == "__main__":
     window.setWindowTitle("SeaFox ROV - Multi-Camera System")
     window.show()
     sys.exit(app.exec_())
-

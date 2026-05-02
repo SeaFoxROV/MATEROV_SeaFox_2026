@@ -5,6 +5,7 @@ from components.crabVision import crabVision
 from components.eDNA import eDNA
 from components.iceberg import Iceberg
 from components.photogrammetry import Photogrammetry
+from components.percentage_species import Ventana
 
 
 class MainWindow(QMainWindow):
@@ -29,4 +30,3 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
-
