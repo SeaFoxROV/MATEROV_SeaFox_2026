@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (
 )
 
 
-class Ventana(QWidget):
+class EDNA(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Tabla de Especies")
@@ -100,9 +100,3 @@ class Ventana(QWidget):
                 self.tabla.setItem(fila, 1, QTableWidgetItem(cantidad))
 
                 fila += 1
-
-
-app = QApplication(sys.argv)
-ventana = Ventana()
-ventana.show()
-sys.exit(app.exec_())

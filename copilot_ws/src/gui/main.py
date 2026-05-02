@@ -2,10 +2,9 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget
 
 from components.crabVision import crabVision
-from components.eDNA import eDNA
 from components.iceberg import Iceberg
 from components.photogrammetry import Photogrammetry
-from components.percentage_species import Ventana
+from components.percentage_species import EDNA
 
 
 class MainWindow(QMainWindow):
@@ -20,7 +19,7 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(Photogrammetry(), "Photogrammetry")
         self.tabs.addTab(Iceberg(), "Iceberg")
         self.tabs.addTab(crabVision(), "Crab Vision")
-        self.tabs.addTab(eDNA(), "eDNA")
+        self.tabs.addTab(EDNA(), "eDNA")
 
         self.setCentralWidget(self.tabs)
 
