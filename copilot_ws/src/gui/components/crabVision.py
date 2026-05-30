@@ -1,12 +1,21 @@
 import cv2
 import numpy as np
 from pathlib import Path
+import traceback
+
 try:
     from ultralytics import YOLO
-    YOLO_AVAILABLE = True
-except Exception:
+
+
+except Exception as e:
     YOLO_AVAILABLE = False
 
+    print("=" * 80)
+    print("ERROR IMPORTANDO YOLO")
+    print(type(e))
+    print(e)
+    traceback.print_exc()
+    print("=" * 80)
 
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
@@ -120,11 +129,11 @@ class crabVision(QWidget):
         try:
             self.model = YOLO(str(self.WEIGHTS))
             self.lbl_status.setText("Modelo listo ✓")
+
         except Exception as e:
+            print(e)
             self.lbl_status.setText("Error al cargar modelo")
-            self.display.setText(f"No se pudo cargar el modelo:\n{e}")
-            self.btn_video.setEnabled(False)
-            self.btn_webcam.setEnabled(False)
+            self.display.setText(str(e))
 
     # ── acciones ───────────────────────────────────────────────────────────
 

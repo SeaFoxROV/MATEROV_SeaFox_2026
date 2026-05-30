@@ -1,10 +1,11 @@
+from components.crabVision import crabVision
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget
 
-from components.crabVision import crabVision
-from components.eDNA import eDNA
-from components.iceberg import Iceberg
+
 from components.photogrammetry import Photogrammetry
+from components.iceberg import Iceberg
+from components.eDNA import eDNA
 
 
 class MainWindow(QMainWindow):
