@@ -6,6 +6,7 @@ from components.eDNA import eDNA
 from components.iceberg import Iceberg
 from components.photogrammetry import Photogrammetry
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -28,6 +29,3 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
-
-
-    
