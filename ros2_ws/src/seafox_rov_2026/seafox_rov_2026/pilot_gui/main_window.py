@@ -1,3 +1,5 @@
+
+import torch
 from email.mime import message
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QHBoxLayout
@@ -155,3 +157,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
