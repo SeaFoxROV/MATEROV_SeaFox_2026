@@ -11,18 +11,19 @@ class CrabDetector:
 
     def detect(self, frame):
         results = self.model(frame, conf=0.6)
+        boxes = results[0].boxes
 
-        count = len(results[0].boxes)
-        annotated = results[0].plot()
-        h, w, _ = annotated.shape
-        cv2.putText(
-            annotated,
-            f"Green Crabs Counter: {count}",
-            (w - 250, 40),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.8,
-            (255, 255, 0),
-            2,
-        )
+        detections = {}
+        for i, box in enumerate(boxes):
+            x1, y1, x2, y2 = box.xyxy[0].tolist()
+            conf = box.conf[0].item()
+            cls = int(box.cls[0])
+            label = self.model.names[cls]
 
-        return annotated, count
+            detections[i] = {
+                "label": label,
+                "confidence": round(conf, 2),
+                "box": {"x1": int(x1), "y1": int(y1), "x2": int(x2), "y2": int(y2)},
+            }
+
+        return detections
