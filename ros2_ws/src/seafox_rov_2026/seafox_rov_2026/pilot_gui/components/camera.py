@@ -198,10 +198,10 @@ class CameraWidget(QFrame):
  
             camera_layout.addWidget(title)
             camera_layout.addWidget(image_label)
-            container.setLayout(camera_layout)
+            # container.setLayout(camera_layout)
 
-            main_layout.addWidget(container)
-            self.camera_containers[name] = container
+            # main_layout.addWidget(container)
+            # self.camera_containers[name] = container
 
             main_layout.addLayout(camera_layout)
  
