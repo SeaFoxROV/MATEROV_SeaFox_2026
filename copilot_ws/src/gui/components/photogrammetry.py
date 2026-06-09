@@ -10,6 +10,8 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from lib.imageManager import imageManager
+# TODO: Poner en varios modulos el EDNA, Websocket y la fotogramtetria
+# TODO: Tambien implementar la seleccion y deseleccion de imagenes basado en el diccionario de annotated_results
 
 
 class Photogrammetry(QWidget):
@@ -60,6 +62,8 @@ class Photogrammetry(QWidget):
         self.calculateBtn = QPushButton("Calcular")
         self.calculateBtn.clicked.connect(self.calculate)
 
+        self.annotated_results = None
+
         layout.addWidget(self.widthLabel)
         layout.addWidget(self.heightLabel)
         layout.addWidget(self.realHeightLabel)
@@ -76,9 +80,10 @@ class Photogrammetry(QWidget):
     def _on_ws_disconnected(self):
         print("WebSocket desconectado")
 
-    def _on_ws_message(self, message):
-        self.set_image(message)
-        print(f"Mensaje WebSocket recibido: {message}")
+    def _on_ws_message(self, image, annotated_results):
+        self.set_image(image)
+        self.annotated_results = annotated_results
+        print(f"Mensaje WebSocket recibido: {image}")
 
     def set_image(self, image):
         cv_img = np.frombuffer(image, dtype=np.uint8)
