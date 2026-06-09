@@ -1,0 +1,41 @@
+graph TD
+  subgraph Copilot_WS["Copilot Workspace"]
+    direction TB
+    MainWindow_CW["MainWindow"]
+
+    MainWindow_CW --> crabVision["crabVision"]
+    MainWindow_CW --> eDNA_comp["eDNA"]
+    MainWindow_CW --> Photogrammetry["Photogrammetry"]
+    MainWindow_CW --> Iceberg["Iceberg"]
+    MainWindow_CW --> imageManager["imageManager"]
+  end
+
+  subgraph ROS2_WS["ROS2 Workspace"]
+    direction TB
+
+    subgraph Control_Pipeline["Control Pipeline · ROS2 Topics"]
+      direction LR
+      JoystickPublisher["JoystickPublisher"]
+      MotionController["MotionController"]
+      TwistToPWM["TwistToPWM"]
+      PwmUdpSender["PwmUdpSender"]
+
+      JoystickPublisher --> MotionController
+      MotionController --> TwistToPWM
+      TwistToPWM --> PwmUdpSender
+    end
+
+    subgraph Pilot_GUI["Pilot GUI · ROS2 Topics"]
+      direction TB
+      MainWindow_ROV["MainWindow"]
+
+      MainWindow_ROV --> VideoThread["VideoThread"]
+      MainWindow_ROV --> CameraWidget["CameraWidget"]
+      MainWindow_ROV --> ModelWidget["ModelWidget"]
+      MainWindow_ROV --> WebSocket["WebSocket"]
+      MainWindow_ROV --> ImageAdjuster["ImageAdjuster"]
+      MainWindow_ROV --> CrabDetector["CrabDetector"]
+    end
+  end
+
+  Copilot_WS <-->|"WebSocket / ROS2 bridge"| ROS2_WS
