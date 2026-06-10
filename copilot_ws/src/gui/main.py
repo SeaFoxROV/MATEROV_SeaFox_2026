@@ -1,6 +1,7 @@
 from components.crabVision import crabVision
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget
+from PyQt5.QtCore import QUrl, QObject, pyqtSignal
 
 
 from components.photogrammetry import Photogrammetry
