@@ -28,7 +28,7 @@ class DetectionManager:
     def count(self) -> int:
         return len(self.detections)
 
-    def add(self, x1, y1, x2, y2, label="manual", confidence=1.0) -> int:
+    def add(self, x1, y1, x2, y2, label="a", confidence=1.0) -> int:
         """Agrega una detección manual. Regresa el id asignado, o -1 si es muy pequeña."""
         x1, x2 = min(x1, x2), max(x1, x2)
         y1, y2 = min(y1, y2), max(y1, y2)
