@@ -84,6 +84,8 @@ class VideoThread(QThread):
     def send_snapshot(self, name):
         if self.name != name:
             return
+        if self.qimg is None:
+            return
         qimg = self.qimg.scaled(320, 240, Qt.KeepAspectRatio, Qt.SmoothTransformation)
         buffer = QBuffer()
         buffer.open(QBuffer.WriteOnly)
@@ -91,7 +93,8 @@ class VideoThread(QThread):
         image_bytes = buffer.data()  # Esto es QByteArray
         buffer.close()
 
-        self.websocket._send_ws_message(image_bytes, self.annotated_results)
+        detections = self.annotated_results or {}
+        self.websocket._send_ws_message(image_bytes, detections)
 
 
 class CameraWidget(QFrame):
