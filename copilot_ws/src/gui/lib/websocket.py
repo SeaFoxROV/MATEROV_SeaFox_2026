@@ -4,7 +4,7 @@ from PyQt5.QtCore import QUrl, QObject, pyqtSignal, QByteArray
 
 
 class WebsocketClient(QObject):
-    message_received = pyqtSignal(bytes, dict)
+    message_received = pyqtSignal(object, object)
 
     def __init__(self):
         super().__init__()
@@ -38,9 +38,11 @@ class WebsocketClient(QObject):
         image_bytes = data[4 + json_length :]
 
         annotated_results = json.loads(json_bytes.decode("utf-8"))
+        print("AAAA")
         self._on_ws_message(bytes(image_bytes), annotated_results)
 
     def _on_ws_message(self, image, annotated_results):
         self.annotated_results = annotated_results
         self.message_received.emit(image, annotated_results)
+        print("BBB")
         print(f"Mensaje WebSocket recibido: {image}")

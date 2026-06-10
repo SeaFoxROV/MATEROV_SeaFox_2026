@@ -11,6 +11,7 @@ class WebSocket:
         self.websocket = QWebSocket()
         self.websocket.connected.connect(self._on_ws_connected)
         self.websocket.disconnected.connect(self._on_ws_disconnected)
+        self.websocket.open(QUrl(self.ws_url))
 
     def _on_ws_connected(self):
         print(f"WebSocket conectado a {self.ws_url}")
@@ -23,17 +24,18 @@ class WebSocket:
         print("WebSocket desconectado")
 
     def _send_ws_message(self, image, annotated_results):
-        if self.websocket.state() == QAbstractSocket.ConnectedState:
-            json_bytes = json.dumps(annotated_results).encode("utf-8")
-            json_length = len(json_bytes)
+        print(":v")
+        json_bytes = json.dumps(annotated_results).encode("utf-8")
+        json_length = len(json_bytes)
 
-            # Header: 4 bytes big-endian con el tamaño del JSON
-            header = json_length.to_bytes(4, byteorder="big")
+        # Header: 4 bytes big-endian con el tamaño del JSON
+        header = json_length.to_bytes(4, byteorder="big")
 
-            # Empaquetar: header + json + imagen
-            payload = header + json_bytes + bytes(image)
-
-            self.websocket.sendBinaryMessage(QByteArray(payload))
+        # Empaquetar: header + json + imagen
+        payload = header + json_bytes + bytes(image)
+        print("CCC")
+        self.websocket.sendBinaryMessage(QByteArray(payload))
+        print(f"Mensaje WebSocket enviado: {len(payload)}")
 
         # elif self.websocket.state() == QAbstractSocket.ConnectingState:
         #     self.ws_pending_message = image
