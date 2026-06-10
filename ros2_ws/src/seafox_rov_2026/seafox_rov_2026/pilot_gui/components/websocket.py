@@ -1,5 +1,6 @@
+import json
 from PyQt5.QtWebSockets import QWebSocket
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtCore import Qt, QUrl, QByteArray
 from PyQt5.QtNetwork import QAbstractSocket
 
 
@@ -23,20 +24,25 @@ class WebSocket:
 
     def _send_ws_message(self, image, annotated_results):
         if self.websocket.state() == QAbstractSocket.ConnectedState:
-            self.websocket.sendBinaryMessage(image)
-            print(
-                f"Imagen WebSocket enviado: {image} y direcciones enviadas: {annotated_results}"
-            )
-            return
+            json_bytes = json.dumps(annotated_results).encode("utf-8")
+            json_length = len(json_bytes)
+
+            # Header: 4 bytes big-endian con el tamaño del JSON
+            header = json_length.to_bytes(4, byteorder="big")
+
+            # Empaquetar: header + json + imagen
+            payload = header + json_bytes + bytes(image)
+
+            self.websocket.sendBinaryMessage(QByteArray(payload))
 
         # elif self.websocket.state() == QAbstractSocket.ConnectingState:
         #     self.ws_pending_message = image
         #     print(f"WebSocket aún conectando a {self.ws_url}...")
         #     return
-
-        self.ws_pending_message = message
-        print(f"Conectando WebSocket a {self.ws_url}...")
-        self.websocket.open(QUrl(self.ws_url))
+        #
+        # self.ws_pending_message = message
+        # print(f"Conectando WebSocket a {self.ws_url}...")
+        # self.websocket.open(QUrl(self.ws_url))
 
     def _on_ws_error(self, error):
         print("WebSocket error:", self.websocket.errorString())

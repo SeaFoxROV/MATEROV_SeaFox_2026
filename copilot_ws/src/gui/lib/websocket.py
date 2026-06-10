@@ -1,5 +1,6 @@
+import json
 from PyQt5.QtWebSockets import QWebSocket
-from PyQt5.QtCore import QUrl, QObject, pyqtSignal
+from PyQt5.QtCore import QUrl, QObject, pyqtSignal, QByteArray
 
 
 class WebsocketClient(QObject):
@@ -12,7 +13,7 @@ class WebsocketClient(QObject):
         self.websocket = QWebSocket()
         self.websocket.connected.connect(self._on_ws_connected)
         self.websocket.disconnected.connect(self._on_ws_disconnected)
-        self.websocket.binaryMessageReceived.connect(self._on_ws_message)
+        self.websocket.binaryMessageReceived.connect(self._on_raw_message)
         self.message = None
 
         print(f"Conectando WebSocket a {self.ws_url}...")
@@ -27,6 +28,17 @@ class WebsocketClient(QObject):
 
     def _on_ws_disconnected(self):
         print("WebSocket desconectado")
+
+    def _on_raw_message(self, raw: QByteArray):
+        data = bytes(raw)
+
+        json_length = int.from_bytes(data[:4], byteorder="big")
+
+        json_bytes = data[4 : 4 + json_length]
+        image_bytes = data[4 + json_length :]
+
+        annotated_results = json.loads(json_bytes.decode("utf-8"))
+        self._on_ws_message(bytes(image_bytes), annotated_results)
 
     def _on_ws_message(self, image, annotated_results):
         self.annotated_results = annotated_results
