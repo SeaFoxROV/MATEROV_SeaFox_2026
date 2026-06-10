@@ -39,7 +39,7 @@ class Detection(QWidget):
         self.annotated_results = annotated_results
         self.detection_manager.load(annotated_results)
         self._redraw()
-        print(f"Mensaje WebSocket recibido: {image}")
+        print(self.annotated_results)
 
     def set_image(self, image):
         cv_img = np.frombuffer(image, dtype=np.uint8)

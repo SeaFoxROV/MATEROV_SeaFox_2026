@@ -22,13 +22,13 @@ class DetectionManager:
 
     def load(self, detections_dict: dict):
         """Reemplaza detecciones con el dict que viene del CrabDetector."""
-        self.detections = {k: dict(v) for k, v in detections_dict.items()}
+        self.detections = {int(k): dict(v) for k, v in detections_dict.items()}
         self._next_id = (max(self.detections.keys()) + 1) if self.detections else 0
 
     def count(self) -> int:
         return len(self.detections)
 
-    def add(self, x1, y1, x2, y2, label="a", confidence=1.0) -> int:
+    def add(self, x1, y1, x2, y2, label="european_green_crab", confidence=1.0) -> int:
         """Agrega una detección manual. Regresa el id asignado, o -1 si es muy pequeña."""
         x1, x2 = min(x1, x2), max(x1, x2)
         y1, y2 = min(y1, y2), max(y1, y2)
