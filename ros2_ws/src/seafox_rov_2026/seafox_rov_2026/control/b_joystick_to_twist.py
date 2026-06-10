@@ -49,6 +49,7 @@ class MotionController(Node):
         right_trigger = msg.data[5]      # jup   Z
         right_joy_x = msg.data[3]
         right_joy_y = msg.data[4]
+        cross_x = msg.data[14]
 
 
         self.last_user_velocity_command.linear.x = -left_joy_y
@@ -61,7 +62,8 @@ class MotionController(Node):
         self.last_user_velocity_command.linear.z = (right_trigger - left_trigger)/2
 
         self.last_user_velocity_command.angular.z = right_joy_x
-        self.last_user_velocity_command.angular.x = right_joy_y
+        self.last_user_velocity_command.angular.y = right_joy_y
+        self.last_user_velocity_command.angular.x = cross_x
         
         self.pwms.data[0] = 1500
 
@@ -78,7 +80,7 @@ class MotionController(Node):
         cmd_vel = Twist()
 
         cmd_vel.linear.x = self.last_user_velocity_command.linear.x
-        cmd_vel.linear.y = self.last_user_velocity_command.linear.y
+        cmd_vel.linear.y = -self.last_user_velocity_command.linear.y
         cmd_vel.linear.z = self.last_user_velocity_command.linear.z
 
         cmd_vel.angular.x = self.last_user_velocity_command.angular.x

@@ -6,7 +6,7 @@ from PyQt5.QtNetwork import QAbstractSocket
 
 class WebSocket:
     def __init__(self):
-        self.ws_url = "ws://10.4.83.70:3001"
+        self.ws_url = "ws://192.168.1.1:3001"
         self.ws_pending_message = None
         self.websocket = QWebSocket()
         self.websocket.connected.connect(self._on_ws_connected)

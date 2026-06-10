@@ -46,6 +46,7 @@ class VideoThread(QThread):
                 if response.status_code == 200:
                     array = np.frombuffer(response.content, dtype=np.uint8)
                     cv_img = cv2.imdecode(array, cv2.IMREAD_COLOR)
+                    #cv_img = cv2.rotate(cv_img, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
                     if cv_img is not None:
                         cv_img = self.adjuster.apply(cv_img)
@@ -54,6 +55,7 @@ class VideoThread(QThread):
                             self.annotated_results = self.detecter.detect(cv_img)
                         height, width, channel = cv_img.shape
                         bytes_per_line = 3 * width
+
                         # to Qt
                         q_img = QImage(
                             cv_img.data,
@@ -102,9 +104,9 @@ class CameraWidget(QFrame):
         super().__init__()
 
         self.camera_configs = {
-            "main": "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000",
+            "main": "http://admin:admin@192.168.1.27:6688/snapshot/PROFILE_000",
             "upper": "http://admin:admin@192.168.1.67:6688/snapshot/PROFILE_000",
-            "middle": "http://admin:admin@192.168.1.69:6688/snapshot/PROFILE_000",
+            "middle": "http://admin:admin@192.168.1.68:6688/snapshot/PROFILE_000",
         }
         self.titles = {}
         self.threads = {}
