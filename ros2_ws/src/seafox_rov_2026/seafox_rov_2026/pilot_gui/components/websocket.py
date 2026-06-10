@@ -21,16 +21,18 @@ class WebSocket:
     def _on_ws_disconnected(self):
         print("WebSocket desconectado")
 
-    def _send_ws_message(self, message):
+    def _send_ws_message(self, image, annotated_results):
         if self.websocket.state() == QAbstractSocket.ConnectedState:
-            self.websocket.sendBinaryMessage(message)
-            print(f"Mensaje WebSocket enviado: {message}")
+            self.websocket.sendBinaryMessage(image)
+            print(
+                f"Imagen WebSocket enviado: {image} y direcciones enviadas: {annotated_results}"
+            )
             return
 
-        elif self.websocket.state() == QAbstractSocket.ConnectingState:
-            self.ws_pending_message = message
-            print(f"WebSocket aún conectando a {self.ws_url}...")
-            return
+        # elif self.websocket.state() == QAbstractSocket.ConnectingState:
+        #     self.ws_pending_message = image
+        #     print(f"WebSocket aún conectando a {self.ws_url}...")
+        #     return
 
         self.ws_pending_message = message
         print(f"Conectando WebSocket a {self.ws_url}...")

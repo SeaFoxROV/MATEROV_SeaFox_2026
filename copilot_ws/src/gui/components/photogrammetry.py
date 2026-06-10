@@ -10,24 +10,16 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from lib.imageManager import imageManager
+# TODO: Poner en varios modulos el EDNA, Websocket y la fotogramtetria
+# TODO: Tambien implementar la seleccion y deseleccion de imagenes basado en el diccionario de annotated_results
 
 
 class Photogrammetry(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.ws_url = "ws://10.4.83.70:3001"
-        self.ws_pending_message = None
-        self.websocket = QWebSocket()
-        self.websocket.connected.connect(self._on_ws_connected)
-        self.websocket.disconnected.connect(self._on_ws_disconnected)
-        self.websocket.binaryMessageReceived.connect(self._on_ws_message)
-        self.message = None
-
-        print(f"Conectando WebSocket a {self.ws_url}...")
-        self.websocket.open(QUrl(self.ws_url))
-
         layout = QVBoxLayout()
+        self.message = None
         self.label = QLabel(f"Mensaje recibido: {self.message}")
         self.label.setAlignment(Qt.AlignCenter)
         self.label.setFixedSize(640, 480)
@@ -60,25 +52,18 @@ class Photogrammetry(QWidget):
         self.calculateBtn = QPushButton("Calcular")
         self.calculateBtn.clicked.connect(self.calculate)
 
+        self.annotated_results = None
+
         layout.addWidget(self.widthLabel)
         layout.addWidget(self.heightLabel)
         layout.addWidget(self.realHeightLabel)
         layout.addWidget(self.realWidthLabel)
         layout.addWidget(self.calculateBtn)
 
-    def _on_ws_connected(self):
-        print(f"WebSocket conectado a {self.ws_url}")
-        if self.ws_pending_message:
-            self.websocket.sendBinaryMessage(self.ws_pending_message)
-            print(f"Mensaje WebSocket enviado: {self.ws_pending_message}")
-            self.ws_pending_message = None
-
-    def _on_ws_disconnected(self):
-        print("WebSocket desconectado")
-
-    def _on_ws_message(self, message):
-        self.set_image(message)
-        print(f"Mensaje WebSocket recibido: {message}")
+    def _on_ws_message(self, image, annotated_results):
+        self.set_image(image)
+        self.annotated_results = annotated_results
+        print(f"Mensaje WebSocket recibido: {image}")
 
     def set_image(self, image):
         cv_img = np.frombuffer(image, dtype=np.uint8)
