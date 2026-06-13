@@ -8,7 +8,7 @@ class WebsocketClient(QObject):
 
     def __init__(self):
         super().__init__()
-        self.ws_url = "ws://192.168.1.1:3001"
+        self.ws_url = "ws://192.168.1.241:3001"
         self.ws_pending_message = None
         self.websocket = QWebSocket()
         self.websocket.connected.connect(self._on_ws_connected)

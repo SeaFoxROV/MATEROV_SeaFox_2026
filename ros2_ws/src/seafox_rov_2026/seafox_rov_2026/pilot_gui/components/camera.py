@@ -46,7 +46,8 @@ class VideoThread(QThread):
                 if response.status_code == 200:
                     array = np.frombuffer(response.content, dtype=np.uint8)
                     cv_img = cv2.imdecode(array, cv2.IMREAD_COLOR)
-                    #cv_img = cv2.rotate(cv_img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+                    cv_img = cv2.rotate(cv_img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+                    cv_img = cv2.rotate(cv_img, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
                     if cv_img is not None:
                         cv_img = self.adjuster.apply(cv_img)
