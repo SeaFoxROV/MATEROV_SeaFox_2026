@@ -5,6 +5,9 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import Float32MultiArray, Int16MultiArray, Int32  # NUEVO: Int32
 
 
+from std_msgs.msg import Int16MultiArray, Float32MultiArray
+
+
 class TwistToPWM(Node):
     STEP = 500
     deadzone = 40
@@ -13,13 +16,19 @@ class TwistToPWM(Node):
         super().__init__("twist_to_pwm")
 
         self.zero = 1500  # NUEVO: ya no es class variable, inicia en 1500
+        self.gripper_pwm = 1500
 
         # 6 thrusters + 2 extras (ej: gripper)
         self.pwm_setpoints = [1500] * 6
         self.pwm_values = [1500] * 8
 
         self.create_subscription(Twist, "/desired_twist", self.setpoint_callback, 10)
-        self.create_subscription(Float32MultiArray, "/joystick_data", self.gripper_callback, 10)
+        self.create_subscription(
+            Float32MultiArray,
+            "gripper_pwm",
+            self.gripper_callback,
+            10
+        )
         self.create_subscription(Int32, "zero_value", self.zero_callback, 10)  # NUEVO
 
         self.pwm_pub = self.create_publisher(Int16MultiArray, "pwm_values", 10)
@@ -38,28 +47,9 @@ class TwistToPWM(Node):
     def clamp(self, val, min_v=1200, max_v=1800):
         return max(min(val, max_v), min_v)
 
-    # ---------------- GRIPPER ----------------
     def gripper_callback(self, msg: Float32MultiArray):
-        try:
-            self.pwm_values[7] = self.zero
-            if msg.data[11]==1.0:
-                self.pwm_values[7] = 1200
-            elif msg.data[10] == 1.0:
-                self.pwm_values[7] = 1800
-
-        except:
-            pass
-
-        try:
-            if msg.data[-1] == -1.0:
-                self.pwm_values[6] = 1800
-            elif msg.data[-1] == 1.0:
-                self.pwm_values[6] = 1200
-            else:
-                self.pwm_values[6] = self.zero
-        except:
-            pass
-
+        if len(msg.data) > 0:
+            self.gripper_pwm = int(msg.data[0])
     # ---------------- MIXING ----------------
     def setpoint_callback(self, msg: Twist):
 
@@ -80,6 +70,7 @@ class TwistToPWM(Node):
         self.pwm_setpoints[4] = self.clamp(base - z - roll,1100,1900)
         self.pwm_setpoints[5] = base + x + y - yaw + pitch
 
+        self.pwm_values[7] = self.gripper_pwm  # NUEVO: gripper en el canal 6
         for i in range(6):
             if i == 0 or i == 4:
                 if self.pwm_setpoints[i] > (self.zero - self.deadzone) and self.pwm_setpoints[i] < (self.zero + self.deadzone):

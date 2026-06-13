@@ -87,9 +87,9 @@ class MotionController(Node):
         cmd_vel.angular.y = self.last_user_velocity_command.angular.y 
         cmd_vel.angular.z = self.last_user_velocity_command.angular.z 
         
-        self.gripper_pub.publish(self.pwms)
-
-        self.cmd_vel_pub.publish(cmd_vel)
+        #self.gripper_pub.publish(self.pwms)
+        # Deactive for now.
+        #self.cmd_vel_pub.publish(cmd_vel)
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
 def main(args=None):
     rclpy.init(args=args)
