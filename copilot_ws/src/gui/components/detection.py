@@ -26,6 +26,14 @@ class Detection(QWidget):
         self.label.setFixedSize(640, 480)
         layout.addWidget(self.label)
 
+        self.count_label = QLabel("Detecciones: 0")
+        self.count_label.setAlignment(Qt.AlignCenter)
+        self.count_label.setStyleSheet(
+            "font-weight: bold; font-size: 14px; color: white;"
+            "background-color: #222; padding: 4px; border-radius: 4px;"
+        )
+        layout.addWidget(self.count_label)
+
         self.setLayout(layout)
 
         self.label.setMouseTracking(True)
@@ -99,3 +107,4 @@ class Detection(QWidget):
                 self._base_pixmap, self._image_size
             )
             self.label.setPixmap(annotated)
+            self.count_label.setText(f"Detecciones: {self.detection_manager.count()}")
