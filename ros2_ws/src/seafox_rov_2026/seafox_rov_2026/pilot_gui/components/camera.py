@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import (
     QApplication,
     QFrame,
     QVBoxLayout,
+    QHBoxLayout,
     QLabel,
     QWidget,
     QSizePolicy,
@@ -46,7 +47,7 @@ class VideoThread(QThread):
                 if response.status_code == 200:
                     array = np.frombuffer(response.content, dtype=np.uint8)
                     cv_img = cv2.imdecode(array, cv2.IMREAD_COLOR)
-                    #cv_img = cv2.rotate(cv_img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+                    # cv_img = cv2.rotate(cv_img, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
                     if cv_img is not None:
                         cv_img = self.adjuster.apply(cv_img)
@@ -113,18 +114,39 @@ class CameraWidget(QFrame):
         self.labels = {}
         self.camera_containers = {}
         self.selected_camera = None
+        self.maximized_camera = None  # ← rastrea cuál está maximizada
         self.setFrameShape(QFrame.StyledPanel)
-        main_layout = QVBoxLayout()
+
+        # Layout raíz
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(2)
+
+        # Fila superior: 2 cámaras lado a lado
+        top_row = QHBoxLayout()
+        top_row.setSpacing(2)
+
+        # Fila inferior: 1 cámara centrada
+        bottom_row = QHBoxLayout()
+        bottom_row.setSpacing(2)
+
+        row_map = {
+            "main": top_row,
+            "upper": top_row,
+            "middle": bottom_row,
+        }
 
         for name, url in self.camera_configs.items():
             adjuster = ImageAdjuster()
 
             container = QWidget()
-            camera_layout = QVBoxLayout()
+            camera_layout = QVBoxLayout(container)
             camera_layout.setContentsMargins(0, 0, 0, 0)
+            camera_layout.setSpacing(0)
 
             title = QLabel(name.upper())
             title.setAlignment(Qt.AlignCenter)
+            title.setFixedHeight(20)
             title.setStyleSheet(
                 "font-weight: bold; color: white; background-color: #333;"
             )
@@ -141,10 +163,9 @@ class CameraWidget(QFrame):
 
             camera_layout.addWidget(title)
             camera_layout.addWidget(image_label)
-            container.setLayout(camera_layout)
-
-            main_layout.addWidget(container)
             self.camera_containers[name] = container
+
+            row_map[name].addWidget(container)
 
             thread = VideoThread(name, url, adjuster)
             thread.change_pixmap_signal.connect(
@@ -153,11 +174,27 @@ class CameraWidget(QFrame):
             thread.start()
             self.threads[name] = thread
 
-        self.setLayout(main_layout)
+        # Wrap rows en widgets para poder controlar show/hide por fila
+        top_widget = QWidget()
+        top_widget.setLayout(top_row)
+        top_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        bottom_widget = QWidget()
+        bottom_widget.setLayout(bottom_row)
+        bottom_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        main_layout.addWidget(top_widget, stretch=1)
+        main_layout.addWidget(bottom_widget, stretch=1)
+
+        self.top_widget = top_widget
+        self.bottom_widget = bottom_widget
 
     def set_image(self, q_img, label):
         pixmap = QPixmap.fromImage(q_img).scaled(
-            label.width(), label.height(), Qt.KeepAspectRatio, Qt.SmoothTransformation
+            label.width(),
+            label.height(),
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation,
         )
         label.setPixmap(pixmap)
 
@@ -167,7 +204,7 @@ class CameraWidget(QFrame):
         event.accept()
 
     def select_camera(self, camera_name):
-        for name, thread in self.threads.items():
+        for thread in self.threads.values():
             thread.apply_adjustments = False
         if camera_name in self.threads:
             self.threads[camera_name].apply_adjustments = True
@@ -179,23 +216,36 @@ class CameraWidget(QFrame):
         return self.threads[self.selected_camera].adjuster
 
     def set_title_style(self, camera_name, style):
-        for name in self.titles.keys():
-            self.titles[name].setStyleSheet(
+        for name, title in self.titles.items():
+            title.setStyleSheet(
                 "font-weight: bold; color: white; background-color: #333;"
             )
         if camera_name in self.titles:
             self.titles[camera_name].setStyleSheet(style)
 
     def maximize_camera(self, camera_name):
+        if camera_name not in self.camera_containers:
+            return
+        self.maximized_camera = camera_name
         for name, container in self.camera_containers.items():
-            if name == camera_name:
-                container.show()
-            else:
-                container.hide()
+            container.setVisible(name == camera_name)
+        # Muestra solo la fila que contiene la cámara, oculta la otra
+        top_names = {"main", "upper"}
+        if camera_name in top_names:
+            self.top_widget.show()
+            self.bottom_widget.hide()
+        else:
+            self.top_widget.hide()
+            self.bottom_widget.show()
 
     def reset_camera_view(self):
+        self.maximized_camera = None
+        # Restaurar todos los contenedores
         for container in self.camera_containers.values():
             container.show()
+        # Restaurar ambas filas
+        self.top_widget.show()
+        self.bottom_widget.show()
 
 
 if __name__ == "__main__":
