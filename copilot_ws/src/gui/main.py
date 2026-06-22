@@ -23,7 +23,11 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(Photogrammetry(), "Photogrammetry")
         self.tabs.addTab(Iceberg(), "Iceberg")
 
+<<<<<<< HEAD
         self.crab_tab = crabVision()
+=======
+        self.crab_tab = crabVision()                     
+>>>>>>> f18ed9d57e18d24e728abc531c81ee10152f16de
         self.tabs.addTab(self.crab_tab, "Crab Vision")
 
         self.tabs.addTab(eDNA(), "eDNA")
@@ -43,8 +47,12 @@ class MainWindow(QMainWindow):
     def _on_new_connection(self):
         client = self.ws_server.nextPendingConnection()
         client.binaryMessageReceived.connect(self._on_binary_message)
+<<<<<<< HEAD
         client.disconnected.connect(
             lambda: self.clients.remove(client))  # limpiar lista
+=======
+        client.disconnected.connect(lambda: self.clients.remove(client))  # limpiar lista
+>>>>>>> f18ed9d57e18d24e728abc531c81ee10152f16de
         self.clients.append(client)
         print(f"Pilot conectado: {client.peerAddress().toString()}")
 
@@ -55,7 +63,11 @@ class MainWindow(QMainWindow):
             payload = json.loads(raw[4:4 + json_len])
             jpeg_bytes = raw[4 + json_len:]
 
+<<<<<<< HEAD
             self.crab_tab.receive_detection({
+=======
+            self.crab_tab.receive_detection({     
+>>>>>>> f18ed9d57e18d24e728abc531c81ee10152f16de
                 "image": bytes(jpeg_bytes),
                 "boxes": payload.get("boxes", [])
             })
@@ -79,4 +91,8 @@ def main():
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     main()
+=======
+    main()
+>>>>>>> f18ed9d57e18d24e728abc531c81ee10152f16de

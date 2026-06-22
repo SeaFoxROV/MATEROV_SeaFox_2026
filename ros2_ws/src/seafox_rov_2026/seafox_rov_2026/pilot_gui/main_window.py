@@ -1,3 +1,5 @@
+
+import torch
 from email.mime import message
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QHBoxLayout
@@ -145,6 +147,13 @@ class MainWindow(QMainWindow):
                 if adjuster:
                     adjuster.set_saturation(adjuster.saturation - 0.1)
 
+        elif event.text() == "E":   # E de "enviar deteccion"
+            if self.selected_camera:
+                for thread in self.left_widget.threads.values():
+                    thread.send_detection_snapshot(self.left_widget.selected_camera)
+
+
+
 
 def main():
     app = QApplication(sys.argv)
@@ -155,3 +164,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

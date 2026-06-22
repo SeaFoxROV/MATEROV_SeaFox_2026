@@ -12,6 +12,7 @@ __pycache__/
 
 .venv/
 venv/
+venv311/
 env/
 
 .vscode/
