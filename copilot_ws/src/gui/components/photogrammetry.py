@@ -1,4 +1,13 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QLineEdit
+from lib.imageManager import imageManager
+from PyQt5.QtWidgets import (
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QPushButton,
+    QSpinBox,
+    QDoubleSpinBox,
+    QCheckBox,
+)
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtWebSockets import QWebSocket
 from PyQt5.QtNetwork import QAbstractSocket
@@ -8,15 +17,15 @@ import numpy as np
 import sys
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from lib.imageManager import imageManager
+sys.path.insert(0, os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..")))
 
 
 class Photogrammetry(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.ws_url = "ws://10.4.65.90:3001"
+        self.ws_url = "ws://10.4.83.70:3001"
         self.ws_pending_message = None
         self.websocket = QWebSocket()
         self.websocket.connected.connect(self._on_ws_connected)
@@ -51,11 +60,41 @@ class Photogrammetry(QWidget):
         self.widthLabel = QLabel(f"Ancho: {self.widthLabelText}")
         self.heightLabel = QLabel(f"Alto: {self.heightLabelText}")
 
-        self.realHeightLabel = QLineEdit()
-        self.realHeightLabel.setPlaceholderText("Alto real")
+        self.realHeightLabel = QDoubleSpinBox()
+        self.realHeightLabel.setRange(0, 100000)
+        self.realHeightLabel.setDecimals(2)
+        self.realHeightLabel.setSingleStep(1)
+        # Cuando está en 0 (vacío) muestra un texto guía en vez de "0.00"
+        self.realHeightLabel.setSpecialValueText("Alto real")
 
-        self.realWidthLabel = QLineEdit()
-        self.realWidthLabel.setPlaceholderText("Ancho real")
+        self.realWidthLabel = QDoubleSpinBox()
+        self.realWidthLabel.setRange(0, 100000)
+        self.realWidthLabel.setDecimals(2)
+        self.realWidthLabel.setSingleStep(1)
+        self.realWidthLabel.setSpecialValueText("Ancho real")
+
+        # ── Ajuste manual para margen de error ──────────────────────────
+        # Dos cajas independientes (una por Ancho, otra por Alto) + un
+        # checkbox para "ligarlas" y que se muevan juntas con el mismo valor.
+        self.widthAdjustmentTitle = QLabel("Ajuste Ancho (+/-)")
+        self.widthAdjustmentBox = QDoubleSpinBox()
+        self.widthAdjustmentBox.setRange(-1000, 1000)
+        self.widthAdjustmentBox.setDecimals(2)
+        self.widthAdjustmentBox.setSingleStep(1)
+        self.widthAdjustmentBox.setValue(0)
+
+        self.heightAdjustmentTitle = QLabel("Ajuste Alto (+/-)")
+        self.heightAdjustmentBox = QDoubleSpinBox()
+        self.heightAdjustmentBox.setRange(-1000, 1000)
+        self.heightAdjustmentBox.setDecimals(2)
+        self.heightAdjustmentBox.setSingleStep(1)
+        self.heightAdjustmentBox.setValue(0)
+
+        self.linkAdjustmentsCheckbox = QCheckBox(
+            "Aplicar el mismo ajuste a Ancho y Alto (mover las dos al mismo tiempo)"
+        )
+        self.linkAdjustmentsCheckbox.stateChanged.connect(
+            self._on_link_adjustments_toggled)
 
         self.calculateBtn = QPushButton("Calcular")
         self.calculateBtn.clicked.connect(self.calculate)
@@ -64,6 +103,13 @@ class Photogrammetry(QWidget):
         layout.addWidget(self.heightLabel)
         layout.addWidget(self.realHeightLabel)
         layout.addWidget(self.realWidthLabel)
+
+        layout.addWidget(self.widthAdjustmentTitle)
+        layout.addWidget(self.widthAdjustmentBox)
+        layout.addWidget(self.heightAdjustmentTitle)
+        layout.addWidget(self.heightAdjustmentBox)
+        layout.addWidget(self.linkAdjustmentsCheckbox)
+
         layout.addWidget(self.calculateBtn)
 
     def _on_ws_connected(self):
@@ -130,36 +176,76 @@ class Photogrammetry(QWidget):
         self.heightLabel.setText(f"Alto: {self.heightLabelText}")
         print(f"Alto establecido: {self.heightLabelText}")
 
+    def _on_link_adjustments_toggled(self, state):
+        linked = state == Qt.Checked
+        self.heightAdjustmentBox.setEnabled(not linked)
+
+        if linked:
+
+            self.heightAdjustmentBox.setValue(self.widthAdjustmentBox.value())
+            self.widthAdjustmentBox.valueChanged.connect(
+                self._sync_height_adjustment)
+        else:
+            try:
+                self.widthAdjustmentBox.valueChanged.disconnect(
+                    self._sync_height_adjustment)
+            except TypeError:
+
+                pass
+
+    def _sync_height_adjustment(self, value):
+        self.heightAdjustmentBox.setValue(value)
+
     def calculate(self):
-        if not self.widthLabelText or not self.heightLabelText:
+        if self.widthLabelText is None or self.heightLabelText is None:
             print("Faltan puntos de ancho o alto en píxeles")
             return
 
-        realWidth = self.realWidthLabel.text().strip()
-        realHeight = self.realHeightLabel.text().strip()
+        realWidth = self.realWidthLabel.value()
+        realHeight = self.realHeightLabel.value()
 
-        # Validar que solo uno esté lleno
-        if realWidth and realHeight:
+        if realWidth > 0 and realHeight > 0:
             print("Llena solo uno de los dos campos")
             return
 
-        if not realWidth and not realHeight:
+        if realWidth == 0 and realHeight == 0:
             print("Llena al menos un campo")
             return
 
         try:
             if realWidth:
-                # Tengo ancho real → calculo alto real
-                # alto_real / ancho_real = heightPx / widthPx
-                result = (float(realWidth) * self.heightLabelText) / self.widthLabelText
-                self.realHeightLabel.setText(str(round(result, 4)))
+                # Conozco el ancho real → calculo el alto real.
+                adjustment = self.heightAdjustmentBox.value()
+
+                result = (
+                    float(realWidth) * float(self.heightLabelText)
+                ) / float(self.widthLabelText)
+
+                result += adjustment
+
+                self.realHeightLabel.setValue(round(result, 4))
+
+                print(
+                    f"Alto calculado: {round(result, 4)} "
+                    f"(ajuste aplicado: {adjustment})"
+                )
 
             else:
-                # Tengo alto real → calculo ancho real
+                # Conozco el alto real → calculo el ancho real.
+                adjustment = self.widthAdjustmentBox.value()
+
                 result = (
-                    float(realHeight) * self.widthLabelText
-                ) / self.heightLabelText
-                self.realWidthLabel.setText(str(round(result, 4)))
+                    float(realHeight) * float(self.widthLabelText)
+                ) / float(self.heightLabelText)
+
+                result += adjustment
+
+                self.realWidthLabel.setValue(round(result, 4))
+
+                print(
+                    f"Ancho calculado: {round(result, 4)} "
+                    f"(ajuste aplicado: {adjustment})"
+                )
 
         except ValueError:
             print("El valor ingresado no es un número válido")
