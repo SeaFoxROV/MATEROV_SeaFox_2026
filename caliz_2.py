@@ -4,10 +4,10 @@ import json
 import cv2
 import numpy as np
 
+
 async def test():
     uri = "ws://127.0.0.1:3001"  # hacer pruebas desde la pc
 
-    
     img = cv2.imread("test.png")
     if img is None:
         img = np.zeros((480, 640, 3), dtype="uint8")
