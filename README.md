@@ -1,139 +1,139 @@
 # MATEROV SeaFox 2026
 
-Software del **Seafox Inventive Team** para la competencia **MATE ROV 2026**. El repositorio incluye las interfaces gráficas del piloto y del copiloto, la detección de cangrejos por visión artificial (YOLO), herramientas para las tareas de misión (fotogrametría, icebergs, eDNA) y paquetes de ROS 2 para simular y visualizar el ROV en RViz.
+Software by the **Seafox Inventive Team** for the **MATE ROV 2026** competition. The repository includes the pilot and copilot graphical interfaces, crab detection using computer vision (YOLO), tools for mission tasks (photogrammetry, icebergs, eDNA), and ROS 2 packages to simulate and visualize the ROV in RViz.
 
-## Video de demostración
+## Demo video
 
-[![Demostración del ROV SeaFox](https://img.youtube.com/vi/cpsMytgSRSA/hqdefault.jpg)](https://www.youtube.com/watch?v=cpsMytgSRSA)
+[![SeaFox ROV demo](https://img.youtube.com/vi/cpsMytgSRSA/hqdefault.jpg)](https://www.youtube.com/watch?v=cpsMytgSRSA)
 
-Mira el funcionamiento del ROV en YouTube: <https://www.youtube.com/watch?v=cpsMytgSRSA>
+Watch the ROV in action on YouTube: <https://www.youtube.com/watch?v=cpsMytgSRSA>
 
 ---
 
-## Arquitectura general
+## Overall architecture
 
 ```
-┌─────────────────────────┐        WebSocket (puerto 3001)        ┌──────────────────────────┐
+┌─────────────────────────┐        WebSocket (port 3001)          ┌──────────────────────────┐
 │   Pilot GUI (PyQt5)     │ ────────────────────────────────────▶ │   Copilot GUI (PyQt5)    │
-│  - 3 cámaras IP (HTTP)  │   snapshots + detecciones (JSON+JPEG) │  - Photogrammetry        │
-│  - Ajuste de imagen     │                                       │  - Iceberg               │
-│  - Detección YOLO       │                                       │  - Crab Vision           │
+│  - 3 IP cameras (HTTP)  │   snapshots + detections (JSON+JPEG)  │  - Photogrammetry        │
+│  - Image adjustment     │                                       │  - Iceberg               │
+│  - YOLO detection       │                                       │  - Crab Vision           │
 └─────────────────────────┘                                       │  - eDNA                  │
                                                                   └──────────────────────────┘
 
 ┌───────────────────────────────────────────────────────────────┐
 │ ROS 2 Humble (ros2_ws)                                         │
-│  seafox_sim_2026: URDF + RViz, profundidad (/depth) y fuerzas  │
-│  seafox_rov_2026: código del ROV y GUI del piloto              │
-│  seafox_float_2026: paquete del flotador (en desarrollo)       │
+│  seafox_sim_2026: URDF + RViz, depth (/depth) and forces       │
+│  seafox_rov_2026: ROV code and pilot GUI                       │
+│  seafox_float_2026: float package (in development)             │
 └───────────────────────────────────────────────────────────────┘
 ```
 
-## Estructura del repositorio
+## Repository structure
 
-| Ruta | Descripción |
+| Path | Description |
 |------|-------------|
-| `ros2_ws/src/seafox_rov_2026/seafox_rov_2026/pilot_gui/` | GUI del piloto: visualiza las cámaras IP, ajusta brillo/contraste/saturación, ejecuta la detección de cangrejos y envía capturas al copiloto. |
-| `ros2_ws/src/seafox_rov_2026/.../pilot_gui/lib/vision/` | Detector de cangrejos (`crabDetection.py`) con el modelo YOLO `best.pt`. |
-| `ros2_ws/src/seafox_sim_2026/` | Simulación en RViz: modelo URDF del ROV, nodo de TF por profundidad (`/depth`) y visualizador de fuerzas (`/desired_force`, `/perceived_force`). |
-| `ros2_ws/src/seafox_float_2026/` | Paquete ROS 2 del flotador (esqueleto). |
-| `copilot_ws/src/gui/` | GUI del copiloto con pestañas: **Photogrammetry**, **Iceberg**, **Crab Vision** y **eDNA**. Abre un servidor WebSocket en el puerto `3001`. |
-| `copilot_ws/src/gui/components/runs/detect/train/` | Resultados y pesos del entrenamiento YOLO. |
-| `websocket.py` | Servidor WebSocket independiente (relay/broadcast en el puerto `3001`) para pruebas. |
-| `caliz_2.py` | Cliente de prueba: envía una imagen (`test.png`) y cajas de detección simuladas al copiloto. |
-| `caliz.py` | Visor de prueba de un tópico de imagen ROS 2 (`/mainCamera`). |
-| `dockerfile` | Imagen con ROS 2 Humble, PyQt5 y OpenCV para desarrollo. |
-| `run.bat` | Lanzador de la GUI del piloto en Windows. |
+| `ros2_ws/src/seafox_rov_2026/seafox_rov_2026/pilot_gui/` | Pilot GUI: displays the IP cameras, adjusts brightness/contrast/saturation, runs crab detection, and sends captures to the copilot. |
+| `ros2_ws/src/seafox_rov_2026/.../pilot_gui/lib/vision/` | Crab detector (`crabDetection.py`) using the YOLO model `best.pt`. |
+| `ros2_ws/src/seafox_sim_2026/` | RViz simulation: ROV URDF model, depth-based TF node (`/depth`), and force visualizer (`/desired_force`, `/perceived_force`). |
+| `ros2_ws/src/seafox_float_2026/` | ROS 2 float package (skeleton). |
+| `copilot_ws/src/gui/` | Copilot GUI with tabs: **Photogrammetry**, **Iceberg**, **Crab Vision**, and **eDNA**. Opens a WebSocket server on port `3001`. |
+| `copilot_ws/src/gui/components/runs/detect/train/` | YOLO training results and weights. |
+| `websocket.py` | Standalone WebSocket server (relay/broadcast on port `3001`) for testing. |
+| `caliz_2.py` | Test client: sends an image (`test.png`) and simulated detection boxes to the copilot. |
+| `caliz.py` | Test viewer for a ROS 2 image topic (`/mainCamera`). |
+| `dockerfile` | Image with ROS 2 Humble, PyQt5, and OpenCV for development. |
+| `run.bat` | Pilot GUI launcher for Windows. |
 
 ---
 
-## Requisitos
+## Requirements
 
-- **Python 3.11** (recomendado; es el que usa `run.bat`)
-- **ROS 2 Humble** (solo para los paquetes de `ros2_ws`; en Ubuntu 22.04 o con Docker)
-- Cámaras IP accesibles en la red del ROV (para la GUI del piloto)
+- **Python 3.11** (recommended; it is the version used by `run.bat`)
+- **ROS 2 Humble** (only for the `ros2_ws` packages; on Ubuntu 22.04 or via Docker)
+- IP cameras reachable on the ROV network (for the pilot GUI)
 
-Dependencias de Python principales: `PyQt5`, `opencv-python`, `numpy`, `ultralytics`, `torch`, `requests`, `pyqtgraph`, `websockets`.
+Main Python dependencies: `PyQt5`, `opencv-python`, `numpy`, `ultralytics`, `torch`, `requests`, `pyqtgraph`, `websockets`.
 
 ---
 
-## Instalación
+## Installation
 
 ```bash
-git clone <url-del-repo> MATEROV_SeaFox_2026
+git clone <repo-url> MATEROV_SeaFox_2026
 cd MATEROV_SeaFox_2026
 
-# Crear y activar un entorno virtual
+# Create and activate a virtual environment
 python3.11 -m venv venv311
 source venv311/bin/activate          # Windows: venv311\Scripts\activate
 
-# Instalar dependencias
+# Install dependencies
 pip install -r requirements.txt
 pip install PyQt5 pyqtgraph websockets
 ```
 
-> `requirements.txt` está guardado en UTF‑16. Si `pip` da error al leerlo, conviértelo a UTF‑8 (por ejemplo, con `iconv -f UTF-16 -t UTF-8 requirements.txt > req.txt`) e instala desde `req.txt`.
+> `requirements.txt` is saved in UTF‑16. If `pip` fails to read it, convert it to UTF‑8 (for example, with `iconv -f UTF-16 -t UTF-8 requirements.txt > req.txt`) and install from `req.txt`.
 
 ---
 
-## Ejecución
+## Running
 
-### 1. GUI del copiloto
+### 1. Copilot GUI
 
-Inicia el servidor WebSocket en el puerto `3001` y muestra las pestañas de misión.
+Starts the WebSocket server on port `3001` and shows the mission tabs.
 
 ```bash
 cd copilot_ws/src/gui
 python main.py
 ```
 
-### 2. GUI del piloto
+### 2. Pilot GUI
 
-Antes de ejecutarla, revisa las direcciones de red:
+Before running it, check the network addresses:
 
-- **Cámaras IP**: `camera_configs` en `pilot_gui/components/camera.py` (por defecto `192.168.1.67`, `.68` y `.69`).
-- **IP del copiloto**: `ws_url` en `pilot_gui/components/websocket.py` (por defecto `ws://10.4.65.90:3001`).
+- **IP cameras**: `camera_configs` in `pilot_gui/components/camera.py` (defaults: `192.168.1.67`, `.68`, and `.69`).
+- **Copilot IP**: `ws_url` in `pilot_gui/components/websocket.py` (default: `ws://10.4.65.90:3001`).
 
 ```bash
 cd ros2_ws/src/seafox_rov_2026/seafox_rov_2026/pilot_gui
 python main_window.py
 ```
 
-En Windows, desde la raíz del repositorio:
+On Windows, from the repository root:
 
 ```bat
 run.bat
 ```
 
-#### Controles de teclado (GUI del piloto)
+#### Keyboard controls (pilot GUI)
 
-| Tecla | Acción |
-|-------|--------|
-| `1` / `2` / `3` | Seleccionar cámara principal / superior / media (pulsar dos veces para maximizar). |
-| `0` | Seleccionar todas las cámaras. |
-| `Esc` | Restablecer la vista de cámaras. |
-| `Espacio` | Enviar un snapshot de la cámara seleccionada al copiloto. |
-| `D` / `d` | Iniciar / detener la detección de cangrejos. |
-| `E` | Enviar la detección actual (imagen y cajas) al copiloto. |
-| `B` / `b` | Subir / bajar el brillo. |
-| `C` / `c` | Subir / bajar el contraste. |
-| `S` / `s` | Subir / bajar la saturación. |
+| Key | Action |
+|-----|--------|
+| `1` / `2` / `3` | Select main / top / middle camera (press twice to maximize). |
+| `0` | Select all cameras. |
+| `Esc` | Reset the camera view. |
+| `Space` | Send a snapshot of the selected camera to the copilot. |
+| `D` / `d` | Start / stop crab detection. |
+| `E` | Send the current detection (image and boxes) to the copilot. |
+| `B` / `b` | Increase / decrease brightness. |
+| `C` / `c` | Increase / decrease contrast. |
+| `S` / `s` | Increase / decrease saturation. |
 
-### 3. Probar la comunicación sin el ROV
+### 3. Testing communication without the ROV
 
-Con la GUI del copiloto abierta, envía una detección simulada desde la raíz del repositorio:
+With the copilot GUI open, send a simulated detection from the repository root:
 
 ```bash
 python caliz_2.py
 ```
 
-Si quieres un relay WebSocket independiente en lugar de la GUI del copiloto:
+If you want a standalone WebSocket relay instead of the copilot GUI:
 
 ```bash
 python websocket.py
 ```
 
-### 4. Simulación en ROS 2 (RViz)
+### 4. ROS 2 simulation (RViz)
 
 ```bash
 cd ros2_ws
@@ -144,14 +144,14 @@ source install/setup.bash
 ros2 launch seafox_sim_2026 display.launch.py
 ```
 
-Para mover el ROV en profundidad o visualizar fuerzas, publica en los tópicos:
+To move the ROV in depth or visualize forces, publish to these topics:
 
 ```bash
 ros2 topic pub /depth std_msgs/msg/Float32 "{data: 1.5}"
 ros2 topic pub /desired_force geometry_msgs/msg/Vector3Stamped "{vector: {x: 1.0, y: 0.0, z: 0.0}}"
 ```
 
-### 5. Docker (opcional)
+### 5. Docker (optional)
 
 ```bash
 docker build -t seafox-ros .
@@ -160,19 +160,19 @@ docker run -it --rm \
   seafox-ros
 ```
 
-> Para abrir RViz o las GUIs desde el contenedor hay que habilitar X11 (por ejemplo, con `-e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix` en Linux).
+> To open RViz or the GUIs from the container you need to enable X11 (for example, with `-e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix` on Linux).
 
 ---
 
-## Protocolo WebSocket Pilot → Copilot
+## Pilot → Copilot WebSocket protocol
 
-Cada mensaje es binario con el siguiente formato:
+Each message is binary with the following format:
 
 ```
-[ 4 bytes: longitud del JSON (little-endian) ][ JSON UTF-8 ][ imagen JPEG ]
+[ 4 bytes: JSON length (little-endian) ][ UTF-8 JSON ][ JPEG image ]
 ```
 
-Ejemplo del JSON:
+Example JSON:
 
 ```json
 { "type": "crab_detection", "boxes": [[x1, y1, x2, y2], ...], "count": 2 }
@@ -180,6 +180,6 @@ Ejemplo del JSON:
 
 ---
 
-## Licencia
+## License
 
-Distribuido bajo los términos indicados en [`LICENSE`](LICENSE).
+Distributed under the terms specified in [`LICENSE`](LICENSE).
